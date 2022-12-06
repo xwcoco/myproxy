@@ -43,7 +43,7 @@ local v_ss_encrypt_method_list = {
 }
 
 local x_ss_encrypt_method_list = {
-    "aes-128-gcm", "aes-256-gcm", "chacha20-poly1305", "xchacha20-poly1305", "2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm", "2022-blake3-chacha20-poly1305"
+    "aes-128-gcm", "aes-192-gcm","aes-256-gcm", "chacha20-ietf-poly1305", "xchacha20-ietf-poly1305", "2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm", "2022-blake3-chacha20-poly1305"
 }
 
 local security_list = {"none", "auto", "aes-128-gcm", "chacha20-poly1305", "zero"}
@@ -73,43 +73,21 @@ remarks = s:option(Value, "remarks", translate("Node Remarks"))
 remarks.default = translate("Remarks")
 remarks.rmempty = false
 
-type = s:option(ListValue, "type", translate("Type"))
-if api.is_finded("ss-redir") then
-    type:value("SS", translate("Shadowsocks Libev"))
-end
-if api.is_finded("sslocal") then
-    type:value("SS-Rust", translate("Shadowsocks Rust"))
-end
-if api.is_finded("ssr-redir") then
-    type:value("SSR", translate("ShadowsocksR Libev"))
-end
-if api.is_finded("v2ray") then
-    type:value("V2ray", translate("V2ray"))
-end
-if api.is_finded("xray") then
-    type:value("Xray", translate("Xray"))
-end
-if api.is_finded("brook") then
-    type:value("Brook", translate("Brook"))
-end
-if api.is_finded("naive") then
-    type:value("Naiveproxy", translate("NaiveProxy"))
-end
-if api.is_finded("hysteria") then
-    type:value("Hysteria", translate("Hysteria"))
-end
 
 protocol = s:option(ListValue, "protocol", translate("Protocol"))
+protocol:value("shadowsocks", translate("Shadowsocks"))
 protocol:value("vmess", translate("Vmess"))
+protocol:value("trojan", translate("Trojan"))
+protocol:value("wireguard", translate("wireguard"))
+protocol:value("hysteria", translate("hysteria"))
+protocol:value("shadowtls", translate("shadowtls"))
+protocol:value("shadowsocksr", translate("shadowsocksr"))
 protocol:value("vless", translate("VLESS"))
+protocol:value("tor", translate("tor"))
 protocol:value("http", translate("HTTP"))
 protocol:value("socks", translate("Socks"))
-protocol:value("shadowsocks", translate("Shadowsocks"))
-protocol:value("trojan", translate("Trojan"))
-protocol:value("_balancing", translate("Balancing"))
-protocol:value("_shunt", translate("Shunt"))
-protocol:depends("type", "V2ray")
-protocol:depends("type", "Xray")
+protocol:value("ssh", translate("ssh"))
+
 
 local nodes_table = {}
 for k, e in ipairs(api.get_valid_nodes()) do
@@ -121,275 +99,113 @@ for k, e in ipairs(api.get_valid_nodes()) do
     end
 end
 
--- 负载均衡列表
-balancing_node = s:option(DynamicList, "balancing_node", translate("Load balancing node list"), translate("Load balancing node list, <a target='_blank' href='https://toutyrater.github.io/routing/balance2.html'>document</a>"))
-for k, v in pairs(nodes_table) do balancing_node:value(v.id, v.remarks) end
-balancing_node:depends("protocol", "_balancing")
-
--- 分流
-uci:foreach(appname, "shunt_rules", function(e)
-    if e[".name"] and e.remarks then
-        o = s:option(ListValue, e[".name"], string.format('* <a href="%s" target="_blank">%s</a>', api.url("shunt_rules", e[".name"]), e.remarks))
-        o:value("nil", translate("Close"))
-        o:value("_default", translate("Default"))
-        o:value("_direct", translate("Direct Connection"))
-        o:value("_blackhole", translate("Blackhole"))
-        o:depends("protocol", "_shunt")
-
-        if #nodes_table > 0 then
-            _proxy_tag = s:option(ListValue, e[".name"] .. "_proxy_tag", string.format('* <a style="color:red">%s</a>', e.remarks .. " " .. translate("Preproxy")))
-            _proxy_tag:value("nil", translate("Close"))
-            _proxy_tag:value("default", translate("Default"))
-            _proxy_tag:value("main", translate("Default Preproxy"))
-            _proxy_tag.default = "nil"
-
-            for k, v in pairs(nodes_table) do
-                o:value(v.id, v.remarks)
-                _proxy_tag:depends(e[".name"], v.id)
-            end
-        end
-    end
-end)
-
-shunt_tips = s:option(DummyValue, "shunt_tips", " ")
-shunt_tips.rawhtml = true
-shunt_tips.cfgvalue = function(t, n)
-    return string.format('<a style="color: red" href="../rule">%s</a>', translate("No shunt rules? Click me to go to add."))
-end
-shunt_tips:depends("protocol", "_shunt")
-
-default_node = s:option(ListValue, "default_node", string.format('* <a style="color:red">%s</a>', translate("Default")))
-default_node:value("_direct", translate("Direct Connection"))
-default_node:value("_blackhole", translate("Blackhole"))
-for k, v in pairs(nodes_table) do default_node:value(v.id, v.remarks) end
-default_node:depends("protocol", "_shunt")
-
-if #nodes_table > 0 then
-    o = s:option(ListValue, "main_node", string.format('* <a style="color:red">%s</a>', translate("Default Preproxy")), translate("When using, localhost will connect this node first and then use this node to connect the default node."))
-    o:value("nil", translate("Close"))
-    for k, v in pairs(nodes_table) do
-        o:value(v.id, v.remarks)
-        o:depends("default_node", v.id)
-    end
-end
-
-domainStrategy = s:option(ListValue, "domainStrategy", translate("Domain Strategy"))
-domainStrategy:value("AsIs")
-domainStrategy:value("IPIfNonMatch")
-domainStrategy:value("IPOnDemand")
-domainStrategy.default = "IPOnDemand"
-domainStrategy.description = "<br /><ul><li>" .. translate("'AsIs': Only use domain for routing. Default value.")
-.. "</li><li>" .. translate("'IPIfNonMatch': When no rule matches current domain, resolves it into IP addresses (A or AAAA records) and try all rules again.")
-.. "</li><li>" .. translate("'IPOnDemand': As long as there is a IP-based rule, resolves the domain into IP immediately.")
-.. "</li></ul>"
-domainStrategy:depends("protocol", "_balancing")
-domainStrategy:depends("protocol", "_shunt")
-
-domainMatcher = s:option(ListValue, "domainMatcher", translate("Domain matcher"))
-domainMatcher:value("hybrid")
-domainMatcher:value("linear")
-domainMatcher:depends("protocol", "_balancing")
-domainMatcher:depends("protocol", "_shunt")
-
-
--- Brook协议
-brook_protocol = s:option(ListValue, "brook_protocol", translate("Protocol"))
-brook_protocol:value("client", translate("Brook"))
-brook_protocol:value("wsclient", translate("WebSocket"))
-brook_protocol:depends("type", "Brook")
-function brook_protocol.cfgvalue(self, section)
-	return m:get(section, "protocol")
-end
-function brook_protocol.write(self, section, value)
-	m:set(section, "protocol", value)
-end
-
-brook_tls = s:option(Flag, "brook_tls", translate("Use TLS"))
-brook_tls:depends("brook_protocol", "wsclient")
-
--- Naiveproxy协议
-naiveproxy_protocol = s:option(ListValue, "naiveproxy_protocol", translate("Protocol"))
-naiveproxy_protocol:value("https", translate("HTTPS"))
-naiveproxy_protocol:value("quic", translate("QUIC"))
-naiveproxy_protocol:depends("type", "Naiveproxy")
-function naiveproxy_protocol.cfgvalue(self, section)
-	return m:get(section, "protocol")
-end
-function naiveproxy_protocol.write(self, section, value)
-	m:set(section, "protocol", value)
-end
 
 address = s:option(Value, "address", translate("Address (Support Domain Name)"))
 address.rmempty = false
-address:depends("type", "SS")
-address:depends("type", "SS-Rust")
-address:depends("type", "SSR")
-address:depends("type", "Brook")
-address:depends("type", "Naiveproxy")
-address:depends("type", "Hysteria")
-address:depends({ type = "V2ray", protocol = "vmess" })
-address:depends({ type = "V2ray", protocol = "vless" })
-address:depends({ type = "V2ray", protocol = "http" })
-address:depends({ type = "V2ray", protocol = "socks" })
-address:depends({ type = "V2ray", protocol = "shadowsocks" })
-address:depends({ type = "V2ray", protocol = "trojan" })
-address:depends({ type = "Xray", protocol = "vmess" })
-address:depends({ type = "Xray", protocol = "vless" })
-address:depends({ type = "Xray", protocol = "http" })
-address:depends({ type = "Xray", protocol = "socks" })
-address:depends({ type = "Xray", protocol = "shadowsocks" })
-address:depends({ type = "Xray", protocol = "trojan" })
-
---[[
-use_ipv6 = s:option(Flag, "use_ipv6", translate("Use IPv6"))
-use_ipv6.default = 0
-use_ipv6:depends("type", "SS")
-use_ipv6:depends("type", "SS-Rust")
-use_ipv6:depends("type", "SSR")
-use_ipv6:depends("type", "Brook")
-use_ipv6:depends("type", "Hysteria")
-use_ipv6:depends({ type = "V2ray", protocol = "vmess" })
-use_ipv6:depends({ type = "V2ray", protocol = "vless" })
-use_ipv6:depends({ type = "V2ray", protocol = "http" })
-use_ipv6:depends({ type = "V2ray", protocol = "socks" })
-use_ipv6:depends({ type = "V2ray", protocol = "shadowsocks" })
-use_ipv6:depends({ type = "V2ray", protocol = "trojan" })
-use_ipv6:depends({ type = "Xray", protocol = "vmess" })
-use_ipv6:depends({ type = "Xray", protocol = "vless" })
-use_ipv6:depends({ type = "Xray", protocol = "http" })
-use_ipv6:depends({ type = "Xray", protocol = "socks" })
-use_ipv6:depends({ type = "Xray", protocol = "shadowsocks" })
-use_ipv6:depends({ type = "Xray", protocol = "trojan" })
---]]
 
 port = s:option(Value, "port", translate("Port"))
 port.datatype = "port"
 port.rmempty = false
-port:depends("type", "SS")
-port:depends("type", "SS-Rust")
-port:depends("type", "SSR")
-port:depends("type", "Brook")
-port:depends("type", "Naiveproxy")
-port:depends("type", "Hysteria")
-port:depends({ type = "V2ray", protocol = "vmess" })
-port:depends({ type = "V2ray", protocol = "vless" })
-port:depends({ type = "V2ray", protocol = "http" })
-port:depends({ type = "V2ray", protocol = "socks" })
-port:depends({ type = "V2ray", protocol = "shadowsocks" })
-port:depends({ type = "V2ray", protocol = "trojan" })
-port:depends({ type = "Xray", protocol = "vmess" })
-port:depends({ type = "Xray", protocol = "vless" })
-port:depends({ type = "Xray", protocol = "http" })
-port:depends({ type = "Xray", protocol = "socks" })
-port:depends({ type = "Xray", protocol = "shadowsocks" })
-port:depends({ type = "Xray", protocol = "trojan" })
+port:depends("protocol", "shadowsocks")
+port:depends("protocol", "vmess")
+port:depends("protocol", "trojan")
+port:depends("protocol", "wireguard")
+port:depends("protocol", "hysteria")
+port:depends("protocol", "shadowtls")
+port:depends("protocol", "shadowsocksr")
+port:depends("protocol", "vless")
+port:depends("protocol", "http")
+port:depends("protocol", "socks")
+port:depends("protocol", "ssh")
 
 username = s:option(Value, "username", translate("Username"))
-username:depends("type", "Naiveproxy")
-username:depends({ type = "V2ray", protocol = "http" })
-username:depends({ type = "V2ray", protocol = "socks" })
-username:depends({ type = "Xray", protocol = "http" })
-username:depends({ type = "Xray", protocol = "socks" })
+username:depends("protocol", "http")
+username:depends("protocol", "socks")
+username:depends("protocol", "ssh")
 
 password = s:option(Value, "password", translate("Password"))
 password.password = true
-password:depends("type", "SS")
-password:depends("type", "SS-Rust")
-password:depends("type", "SSR")
-password:depends("type", "Brook")
-password:depends("type", "Naiveproxy")
-password:depends({ type = "V2ray", protocol = "http" })
-password:depends({ type = "V2ray", protocol = "socks" })
-password:depends({ type = "V2ray", protocol = "shadowsocks" })
-password:depends({ type = "V2ray", protocol = "trojan" })
-password:depends({ type = "Xray", protocol = "http" })
-password:depends({ type = "Xray", protocol = "socks" })
-password:depends({ type = "Xray", protocol = "shadowsocks" })
-password:depends({ type = "Xray", protocol = "trojan" })
+password:depends("protocol", "http")
+password:depends("protocol", "socks")
+password:depends("protocol", "shadowsocks")
+password:depends("protocol", "trojan")
+password:depends("protocol", "shadowtls")
+password:depends("protocol", "shadowsocksr")
+password:depends("protocol", "ssh")
 
-hysteria_protocol = s:option(ListValue, "hysteria_protocol", translate("Protocol"))
-hysteria_protocol:value("udp", "UDP")
-hysteria_protocol:value("faketcp", "faketcp")
-hysteria_protocol:value("wechat-video", "wechat-video")
-hysteria_protocol:depends("type", "Hysteria")
-function hysteria_protocol.cfgvalue(self, section)
-	return m:get(section, "protocol")
-end
-function hysteria_protocol.write(self, section, value)
-	m:set(section, "protocol", value)
-end
+
+-- hysteria_protocol = s:option(ListValue, "hysteria_protocol", translate("Protocol"))
+-- hysteria_protocol:value("udp", "UDP")
+-- hysteria_protocol:value("faketcp", "faketcp")
+-- hysteria_protocol:value("wechat-video", "wechat-video")
+-- hysteria_protocol:depends("type", "Hysteria")
+-- function hysteria_protocol.cfgvalue(self, section)
+-- 	return m:get(section, "protocol")
+-- end
+-- function hysteria_protocol.write(self, section, value)
+-- 	m:set(section, "protocol", value)
+-- end
 
 hysteria_obfs = s:option(Value, "hysteria_obfs", translate("Obfs Password"))
-hysteria_obfs:depends("type", "Hysteria")
+hysteria_obfs:depends("protocol", "hysteria")
 
 hysteria_auth_type = s:option(ListValue, "hysteria_auth_type", translate("Auth Type"))
 hysteria_auth_type:value("disable", translate("Disable"))
 hysteria_auth_type:value("string", translate("STRING"))
 hysteria_auth_type:value("base64", translate("BASE64"))
-hysteria_auth_type:depends("type", "Hysteria")
+hysteria_auth_type:depends("protocol", "hysteria")
 
 hysteria_auth_password = s:option(Value, "hysteria_auth_password", translate("Auth Password"))
 hysteria_auth_password.password = true
 hysteria_auth_password:depends("hysteria_auth_type", "string")
 hysteria_auth_password:depends("hysteria_auth_type", "base64")
 
-hysteria_alpn = s:option(Value, "hysteria_alpn", translate("QUIC TLS ALPN"))
-hysteria_alpn:depends("type", "Hysteria")
 
-ss_encrypt_method = s:option(Value, "ss_encrypt_method", translate("Encrypt Method"))
-for a, t in ipairs(ss_encrypt_method_list) do ss_encrypt_method:value(t) end
-ss_encrypt_method:depends("type", "SS")
-function ss_encrypt_method.cfgvalue(self, section)
-	return m:get(section, "method")
-end
-function ss_encrypt_method.write(self, section, value)
-	m:set(section, "method", value)
-end
+-- ss_encrypt_method = s:option(Value, "ss_encrypt_method", translate("Encrypt Method"))
+-- for a, t in ipairs(ss_encrypt_method_list) do ss_encrypt_method:value(t) end
+-- ss_encrypt_method:depends("type", "SS")
+-- function ss_encrypt_method.cfgvalue(self, section)
+-- 	return m:get(section, "method")
+-- end
+-- function ss_encrypt_method.write(self, section, value)
+-- 	m:set(section, "method", value)
+-- end
 
-ss_rust_encrypt_method = s:option(Value, "ss_rust_encrypt_method", translate("Encrypt Method"))
-for a, t in ipairs(ss_rust_encrypt_method_list) do ss_rust_encrypt_method:value(t) end
-ss_rust_encrypt_method:depends("type", "SS-Rust")
-function ss_rust_encrypt_method.cfgvalue(self, section)
-	return m:get(section, "method")
-end
-function ss_rust_encrypt_method.write(self, section, value)
-	m:set(section, "method", value)
-end
+-- ss_rust_encrypt_method = s:option(Value, "ss_rust_encrypt_method", translate("Encrypt Method"))
+-- for a, t in ipairs(ss_rust_encrypt_method_list) do ss_rust_encrypt_method:value(t) end
+-- ss_rust_encrypt_method:depends("type", "SS-Rust")
+-- function ss_rust_encrypt_method.cfgvalue(self, section)
+-- 	return m:get(section, "method")
+-- end
+-- function ss_rust_encrypt_method.write(self, section, value)
+-- 	m:set(section, "method", value)
+-- end
 
-ssr_encrypt_method = s:option(Value, "ssr_encrypt_method", translate("Encrypt Method"))
-for a, t in ipairs(ssr_encrypt_method_list) do ssr_encrypt_method:value(t) end
-ssr_encrypt_method:depends("type", "SSR")
-function ssr_encrypt_method.cfgvalue(self, section)
-	return m:get(section, "method")
-end
-function ssr_encrypt_method.write(self, section, value)
-	m:set(section, "method", value)
-end
+-- ssr_encrypt_method = s:option(Value, "ssr_encrypt_method", translate("Encrypt Method"))
+-- for a, t in ipairs(ssr_encrypt_method_list) do ssr_encrypt_method:value(t) end
+-- ssr_encrypt_method:depends("type", "SSR")
+-- function ssr_encrypt_method.cfgvalue(self, section)
+-- 	return m:get(section, "method")
+-- end
+-- function ssr_encrypt_method.write(self, section, value)
+-- 	m:set(section, "method", value)
+-- end
 
-security = s:option(ListValue, "security", translate("Encrypt Method"))
-for a, t in ipairs(security_list) do security:value(t) end
-security:depends({ type = "V2ray", protocol = "vmess" })
-security:depends({ type = "Xray", protocol = "vmess" })
+-- security = s:option(ListValue, "security", translate("Encrypt Method"))
+-- for a, t in ipairs(security_list) do security:value(t) end
+-- security:depends({ type = "V2ray", protocol = "vmess" })
+-- security:depends({ type = "Xray", protocol = "vmess" })
 
-encryption = s:option(Value, "encryption", translate("Encrypt Method"))
-encryption.default = "none"
-encryption:value("none")
-encryption:depends({ type = "V2ray", protocol = "vless" })
-encryption:depends({ type = "Xray", protocol = "vless" })
+-- encryption = s:option(Value, "encryption", translate("Encrypt Method"))
+-- encryption.default = "none"
+-- encryption:value("none")
+-- encryption:depends({ type = "V2ray", protocol = "vless" })
+-- encryption:depends({ type = "Xray", protocol = "vless" })
 
-v_ss_encrypt_method = s:option(ListValue, "v_ss_encrypt_method", translate("Encrypt Method"))
-for a, t in ipairs(v_ss_encrypt_method_list) do v_ss_encrypt_method:value(t) end
-v_ss_encrypt_method:depends({ type = "V2ray", protocol = "shadowsocks" })
-function v_ss_encrypt_method.cfgvalue(self, section)
-	return m:get(section, "method")
-end
-function v_ss_encrypt_method.write(self, section, value)
-	m:set(section, "method", value)
-end
 
 x_ss_encrypt_method = s:option(ListValue, "x_ss_encrypt_method", translate("Encrypt Method"))
 for a, t in ipairs(x_ss_encrypt_method_list) do x_ss_encrypt_method:value(t) end
-x_ss_encrypt_method:depends({ type = "Xray", protocol = "shadowsocks" })
+x_ss_encrypt_method:depends("protocol", "shadowsocks" )
 function x_ss_encrypt_method.cfgvalue(self, section)
 	return m:get(section, "method")
 end

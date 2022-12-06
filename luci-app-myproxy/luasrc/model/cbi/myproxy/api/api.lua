@@ -201,32 +201,10 @@ function get_valid_nodes()
     local nodes = {}
     uci:foreach(appname, "nodes", function(e)
         e.id = e[".name"]
-        if e.type and e.remarks then
-            if e.protocol and (e.protocol == "_balancing" or e.protocol == "_shunt") then
-                e["remark"] = "%s：[%s] " % {i18n.translatef(e.type .. e.protocol), e.remarks}
-                e["node_type"] = "special"
-                nodes[#nodes + 1] = e
-            end
+        if e.remarks then
             if e.port and e.address then
                 local address = e.address
                 if is_ip(address) or datatypes.hostname(address) then
-                    local type = e.type
-                    if (type == "V2ray" or type == "Xray") and e.protocol then
-                        local protocol = e.protocol
-                        if protocol == "vmess" then
-                            protocol = "VMess"
-                        elseif protocol == "vless" then
-                            protocol = "VLESS"
-                        else
-                            protocol = protocol:gsub("^%l",string.upper)
-                        end
-                        type = type .. " " .. protocol
-                    end
-                    if is_ipv6(address) then address = get_ipv6_full(address) end
-                    e["remark"] = "%s：[%s]" % {type, e.remarks}
-                    if nodes_ping:find("info") then
-                        e["remark"] = "%s：[%s] %s:%s" % {type, e.remarks, address, e.port}
-                    end
                     e.node_type = "normal"
                     nodes[#nodes + 1] = e
                 end
