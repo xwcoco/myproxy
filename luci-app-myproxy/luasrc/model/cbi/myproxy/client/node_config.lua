@@ -213,12 +213,10 @@ function x_ss_encrypt_method.write(self, section, value)
 	m:set(section, "method", value)
 end
 
-uot = s:option(Flag, "uot", translate("UDP over TCP"), translate("Need Xray server side with Shadowsocks-2022 protocol"))
-uot:depends({ type = "Xray", protocol = "shadowsocks" })
+uot = s:option(Flag, "uot", translate("UDP over TCP"))
+uot:depends("protocol","shadowsocks" )
 
-iv_check = s:option(Flag, "iv_check", translate("IV Check"))
-iv_check:depends({ type = "V2ray", protocol = "shadowsocks" })
-iv_check:depends({ type = "Xray", protocol = "shadowsocks" })
+
 
 ssr_protocol = s:option(Value, "ssr_protocol", translate("Protocol"))
 for a, t in ipairs(ssr_protocol_list) do ssr_protocol:value(t) end
@@ -523,11 +521,11 @@ grpc_initial_windows_size:depends({ type = "Xray", transport = "grpc"})
 
 -- [[ Mux ]]--
 mux = s:option(Flag, "mux", translate("Mux"))
-mux:depends({ type = "V2ray", protocol = "vmess" })
-mux:depends({ type = "V2ray", protocol = "vless", xtls = false })
+mux:depends("protocol","vmess")
+mux:depends({protocol = "vless", xtls = false })
 mux:depends({ type = "V2ray", protocol = "http" })
 mux:depends({ type = "V2ray", protocol = "socks" })
-mux:depends({ type = "V2ray", protocol = "shadowsocks" })
+mux:depends({ protocol = "shadowsocks", uot = false})
 mux:depends({ type = "V2ray", protocol = "trojan" })
 mux:depends({ type = "Xray", protocol = "vmess" })
 mux:depends({ type = "Xray", protocol = "vless", xtls = false })
@@ -535,6 +533,20 @@ mux:depends({ type = "Xray", protocol = "http" })
 mux:depends({ type = "Xray", protocol = "socks" })
 mux:depends({ type = "Xray", protocol = "shadowsocks" })
 mux:depends({ type = "Xray", protocol = "trojan" })
+
+mux_protocol = s:option(ListValue,"mux_protocol",translate("mux protocol"))
+mux_protocol:value("smux")
+mux_protocol:value("yamux")
+mux_protocol.default = "smux"
+
+mux_max_connections = s:option(Value,"mux_max_connections",translate("mux max connections"))
+mux_max_connections.default = "4"
+
+mux_min_streams = s:option(Value,"mux_min_streams",translate("mux min streams"))
+mux_min_streams.default = "4"
+
+mux_max_streams = s:option(Value,"mux_max_streams",translate("mux max streams"))
+mux_max_streams.default = "0"
 
 mux_concurrency = s:option(Value, "mux_concurrency", translate("Mux concurrency"))
 mux_concurrency.default = 8
