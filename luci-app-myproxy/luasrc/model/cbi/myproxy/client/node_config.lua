@@ -217,6 +217,43 @@ uot = s:option(Flag, "uot", translate("UDP over TCP"))
 uot:depends("protocol","shadowsocks" )
 
 
+-- [[ Mux ]]--
+mux = s:option(Flag, "mux", translate("Mux"))
+mux:depends("protocol","vmess")
+mux:depends({protocol = "vless", xtls = false })
+mux:depends({ type = "V2ray", protocol = "http" })
+mux:depends({ type = "V2ray", protocol = "socks" })
+mux:depends({ protocol = "shadowsocks", uot = false})
+mux:depends({ type = "V2ray", protocol = "trojan" })
+mux:depends({ type = "Xray", protocol = "vmess" })
+mux:depends({ type = "Xray", protocol = "vless", xtls = false })
+mux:depends({ type = "Xray", protocol = "http" })
+mux:depends({ type = "Xray", protocol = "socks" })
+mux:depends({ type = "Xray", protocol = "shadowsocks" })
+mux:depends({ type = "Xray", protocol = "trojan" })
+
+mux_protocol = s:option(ListValue,"mux_protocol",translate("mux protocol"))
+mux_protocol:value("smux")
+mux_protocol:value("yamux")
+mux_protocol.default = "smux"
+
+mux_max_connections = s:option(Value,"mux_max_connections",translate("mux max connections"))
+mux_max_connections.default = "4"
+
+mux_min_streams = s:option(Value,"mux_min_streams",translate("mux min streams"))
+mux_min_streams.default = "4"
+
+mux_max_streams = s:option(Value,"mux_max_streams",translate("mux max streams"))
+mux_max_streams.default = "0"
+
+
+-- Dial Fields
+
+dial_field_enable = s:option(Flag,"dial_enable",translate("enable Dial Field"))
+dial_field_enable:depends("protocol","shadowsocks")
+
+detour = s:option(Value,"detour",translate("detour - The tag of the upstream outbound"))
+detour:depends(dial_field_enable,true)
 
 ssr_protocol = s:option(Value, "ssr_protocol", translate("Protocol"))
 for a, t in ipairs(ssr_protocol_list) do ssr_protocol:value(t) end
@@ -519,34 +556,7 @@ grpc_initial_windows_size = s:option(Value, "grpc_initial_windows_size", transla
 grpc_initial_windows_size.default = "0"
 grpc_initial_windows_size:depends({ type = "Xray", transport = "grpc"})
 
--- [[ Mux ]]--
-mux = s:option(Flag, "mux", translate("Mux"))
-mux:depends("protocol","vmess")
-mux:depends({protocol = "vless", xtls = false })
-mux:depends({ type = "V2ray", protocol = "http" })
-mux:depends({ type = "V2ray", protocol = "socks" })
-mux:depends({ protocol = "shadowsocks", uot = false})
-mux:depends({ type = "V2ray", protocol = "trojan" })
-mux:depends({ type = "Xray", protocol = "vmess" })
-mux:depends({ type = "Xray", protocol = "vless", xtls = false })
-mux:depends({ type = "Xray", protocol = "http" })
-mux:depends({ type = "Xray", protocol = "socks" })
-mux:depends({ type = "Xray", protocol = "shadowsocks" })
-mux:depends({ type = "Xray", protocol = "trojan" })
 
-mux_protocol = s:option(ListValue,"mux_protocol",translate("mux protocol"))
-mux_protocol:value("smux")
-mux_protocol:value("yamux")
-mux_protocol.default = "smux"
-
-mux_max_connections = s:option(Value,"mux_max_connections",translate("mux max connections"))
-mux_max_connections.default = "4"
-
-mux_min_streams = s:option(Value,"mux_min_streams",translate("mux min streams"))
-mux_min_streams.default = "4"
-
-mux_max_streams = s:option(Value,"mux_max_streams",translate("mux max streams"))
-mux_max_streams.default = "0"
 
 mux_concurrency = s:option(Value, "mux_concurrency", translate("Mux concurrency"))
 mux_concurrency.default = 8
