@@ -7,22 +7,10 @@ uci -q batch <<-EOF >/dev/null
 	add ucitrack myproxy
 	set ucitrack.@myproxy[-1].init=myproxy
 	commit ucitrack
-	delete firewall.myproxy
-	set firewall.myproxy=include
-	set firewall.myproxy.type=script
-	set firewall.myproxy.path=/var/etc/myproxy.include
-	set firewall.myproxy.reload=1
-	commit firewall
 	delete ucitrack.@myproxy_server[-1]
 	add ucitrack myproxy_server
 	set ucitrack.@myproxy_server[-1].init=myproxy_server
 	commit ucitrack
-	delete firewall.myproxy_server
-	set firewall.myproxy_server=include
-	set firewall.myproxy_server.type=script
-	set firewall.myproxy_server.path=/var/etc/myproxy_server.include
-	set firewall.myproxy_server.reload=1
-	commit firewall
 	set uhttpd.main.max_requests=50
 	commit uhttpd
 EOF
