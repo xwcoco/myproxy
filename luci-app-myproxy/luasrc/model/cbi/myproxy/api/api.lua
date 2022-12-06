@@ -336,49 +336,18 @@ function get_bin_version_cache(file, cmd)
     return ""
 end
 
-function get_v2ray_path()
-    local path = uci_get_type("global_app", "v2ray_file")
+
+function get_singbox_path()
+    local path = uci_get_type("global_app", "singbox_file")
     return path
 end
 
-function get_v2ray_version(file)
-    if file == nil then file = get_v2ray_path() end
-    local cmd = "version | awk '{print $2}' | sed -n 1P"
+function get_singbox_version(file)
+    if file == nil then file = get_singbox_path() end
+    local cmd = "version | awk '{print $3}' | sed -n 1P"
     return get_bin_version_cache(file, cmd)
 end
 
-function get_xray_path()
-    local path = uci_get_type("global_app", "xray_file")
-    return path
-end
-
-function get_xray_version(file)
-    if file == nil then file = get_xray_path() end
-    local cmd = "-version | awk '{print $2}' | sed -n 1P"
-    return get_bin_version_cache(file, cmd)
-end
-
-function get_brook_path()
-    local path = uci_get_type("global_app", "brook_file")
-    return path
-end
-
-function get_brook_version(file)
-    if file == nil then file = get_brook_path() end
-    local cmd = "-v | awk '{print $3}'"
-    return get_bin_version_cache(file, cmd)
-end
-
-function get_hysteria_path()
-    local path = uci_get_type("global_app", "hysteria_file")
-    return path
-end
-
-function get_hysteria_version(file)
-    if file == nil then file = get_hysteria_path() end
-    local cmd = "-v | awk '{print $3}'"
-    return get_bin_version_cache(file, cmd)
-end
 
 function is_file(path)
     if path and #path > 1 then

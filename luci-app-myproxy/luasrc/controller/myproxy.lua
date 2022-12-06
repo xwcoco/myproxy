@@ -7,10 +7,7 @@ local ucic = luci.model.uci.cursor()
 local http = require "luci.http"
 local util = require "luci.util"
 local i18n = require "luci.i18n"
-local brook = require("luci.model.cbi." .. appname ..".api.brook")
-local v2ray = require("luci.model.cbi." .. appname ..".api.v2ray")
-local xray = require("luci.model.cbi." .. appname ..".api.xray")
-local hysteria = require("luci.model.cbi." .. appname ..".api.hysteria")
+local singbox = require("luci.model.cbi." .. appname ..".api.singbox")
 
 function index()
 	appname = require "luci.model.cbi.myproxy.api.api".appname
@@ -20,7 +17,7 @@ function index()
 	entry({"admin", "services", appname, "hide"}, call("hide_menu")).leaf = true
 	if not nixio.fs.access("/etc/config/myproxy") then return end
 	if nixio.fs.access("/etc/config/myproxy_show") then
-		e = entry({"admin", "services", appname}, alias("admin", "services", appname, "settings"), _("PassWall 2"), -1)
+		e = entry({"admin", "services", appname}, alias("admin", "services", appname, "settings"), _("MyProxy"), -1)
 		e.dependent = true
 		e.acl_depends = { "luci-app-myproxy" }
 	end
@@ -33,7 +30,7 @@ function index()
 	-- entry({"admin", "services", appname, "app_update"}, cbi(appname .. "/client/app_update"), _("App Update"), 95).leaf = true
 	-- entry({"admin", "services", appname, "rule"}, cbi(appname .. "/client/rule"), _("Rule Manage"), 96).leaf = true
 	-- entry({"admin", "services", appname, "node_subscribe_config"}, cbi(appname .. "/client/node_subscribe_config")).leaf = true
-	-- entry({"admin", "services", appname, "node_config"}, cbi(appname .. "/client/node_config")).leaf = true
+	entry({"admin", "services", appname, "node_config"}, cbi(appname .. "/client/node_config")).leaf = true
 	-- entry({"admin", "services", appname, "shunt_rules"}, cbi(appname .. "/client/shunt_rules")).leaf = true
 	-- entry({"admin", "services", appname, "acl"}, cbi(appname .. "/client/acl"), _("Access control"), 98).leaf = true
 	-- entry({"admin", "services", appname, "acl_config"}, cbi(appname .. "/client/acl_config")).leaf = true
@@ -65,14 +62,8 @@ function index()
 	entry({"admin", "services", appname, "clear_all_nodes"}, call("clear_all_nodes")).leaf = true
 	entry({"admin", "services", appname, "delete_select_nodes"}, call("delete_select_nodes")).leaf = true
 	entry({"admin", "services", appname, "update_rules"}, call("update_rules")).leaf = true
-	entry({"admin", "services", appname, "brook_check"}, call("brook_check")).leaf = true
-	entry({"admin", "services", appname, "brook_update"}, call("brook_update")).leaf = true
-	entry({"admin", "services", appname, "v2ray_check"}, call("v2ray_check")).leaf = true
-	entry({"admin", "services", appname, "v2ray_update"}, call("v2ray_update")).leaf = true
-	entry({"admin", "services", appname, "xray_check"}, call("xray_check")).leaf = true
-	entry({"admin", "services", appname, "xray_update"}, call("xray_update")).leaf = true
-	entry({"admin", "services", appname, "hysteria_check"}, call("hysteria_check")).leaf = true
-	entry({"admin", "services", appname, "hysteria_update"}, call("hysteria_update")).leaf = true
+	entry({"admin", "services", appname, "singbox_check"}, call("singbox_check")).leaf = true
+	entry({"admin", "services", appname, "singbox_update"}, call("singbox_update")).leaf = true
 end
 
 local function http_write_json(content)
@@ -350,75 +341,26 @@ function server_clear_log()
 	luci.sys.call("echo '' > /tmp/log/myproxy_server.log")
 end
 
-function brook_check()
-	local json = brook.to_check("")
+
+
+function singbox_check()
+	local json = singbox.to_check("")
 	http_write_json(json)
 end
 
-function brook_update()
-	local json = nil
-	local task = http.formvalue("task")
-	if task == "move" then
-		json = brook.to_move(http.formvalue("file"))
-	else
-		json = brook.to_download(http.formvalue("url"), http.formvalue("size"))
-	end
-
-	http_write_json(json)
-end
-
-function v2ray_check()
-	local json = v2ray.to_check("")
-	http_write_json(json)
-end
-
-function v2ray_update()
+function singbox_update()
 	local json = nil
 	local task = http.formvalue("task")
 	if task == "extract" then
-		json = v2ray.to_extract(http.formvalue("file"), http.formvalue("subfix"))
+		json = singbox.to_extract(http.formvalue("file"), http.formvalue("subfix"))
 	elseif task == "move" then
-		json = v2ray.to_move(http.formvalue("file"))
+		json = singbox.to_move(http.formvalue("file"))
 	else
-		json = v2ray.to_download(http.formvalue("url"), http.formvalue("size"))
+		json = singbox.to_download(http.formvalue("url"), http.formvalue("size"))
 	end
 
 	http_write_json(json)
 end
 
-function xray_check()
-	local json = xray.to_check("")
-	http_write_json(json)
-end
 
-function xray_update()
-	local json = nil
-	local task = http.formvalue("task")
-	if task == "extract" then
-		json = xray.to_extract(http.formvalue("file"), http.formvalue("subfix"))
-	elseif task == "move" then
-		json = xray.to_move(http.formvalue("file"))
-	else
-		json = xray.to_download(http.formvalue("url"), http.formvalue("size"))
-	end
-
-	http_write_json(json)
-end
-
-function hysteria_check()
-	local json = hysteria.to_check("")
-	http_write_json(json)
-end
-
-function hysteria_update()
-	local json = nil
-	local task = http.formvalue("task")
-	if task == "move" then
-		json = hysteria.to_move(http.formvalue("file"))
-	else
-		json = hysteria.to_download(http.formvalue("url"), http.formvalue("size"))
-	end
-
-	http_write_json(json)
-end
 
