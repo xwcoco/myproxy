@@ -6,6 +6,7 @@ util = require "luci.util"
 datatypes = require "luci.cbi.datatypes"
 jsonc = require "luci.jsonc"
 i18n = require "luci.i18n"
+log = require "luci.log"
 
 appname = "myproxy"
 curl = "/usr/bin/curl"
@@ -206,6 +207,11 @@ function get_valid_nodes()
                 local address = e.address
                 if is_ip(address) or datatypes.hostname(address) then
                     e.node_type = "normal"
+                    if is_ipv6(address) then address = get_ipv6_full(address) end
+                    e["remark"] = "%s：[%s]" % {e.protocol, e.remarks}
+                    if nodes_ping:find("info") then
+                        e["remark"] = "%s：[%s] %s:%s" % {e.protocol, e.remarks, address, e.port}
+                    end
                     nodes[#nodes + 1] = e
                 end
             end
@@ -244,6 +250,26 @@ function gen_uuid(format)
         uuid = string.gsub(uuid, "-", "")
     end
     return uuid
+end
+
+local singnodeName="singbox"
+local singnodeshunt = "shunt"
+function uci_get_singbox_node(config,default)
+    local value = uci:get(appname, singnodeName, singnodeshunt, config, default) 
+    -- local value = uci:get(appname, "singnodeName", config, default
+    if (value == nil or value == "") and (default and default ~= "") then
+        value = default
+    end
+    return value 
+end
+
+function uci_set_singbox_node(config,value)
+    x = uci.cursor()
+    log.print("uci_set_singbox_node")
+    log.print(config)
+    log.print(value)
+    x.set(appname,singnodeName,singnodeshunt,config,value)
+    x.commit()
 end
 
 function uci_get_type(type, config, default)

@@ -81,26 +81,13 @@ o.cfgvalue = function(t, n)
     local is_sub = m:get(n, "is_sub") or ""
     local group = m:get(n, "group") or ""
     local remarks = m:get(n, "remarks") or ""
-    local type = m:get(n, "type") or ""
-    str = str .. string.format("<input type='hidden' id='cbid.%s.%s.type' value='%s'/>", appname, n, type)
-    if type == "V2ray" or type == "Xray" then
-        local protocol = m:get(n, "protocol")
-        if protocol == "_balancing" then
-            protocol = translate("Balancing")
-        elseif protocol == "_shunt" then
-            protocol = translate("Shunt")
-        elseif protocol == "vmess" then
-            protocol = "VMess"
-        elseif protocol == "vless" then
-            protocol = "VLESS"
-        else
-            protocol = protocol:gsub("^%l",string.upper)
-        end
-        type = type .. " " .. protocol
-    end
+    local protocol = m:get(n, "protocol")
+    -- local type = m:get(n, "type") or ""
+    str = str .. string.format("<input type='hidden' id='cbid.%s.%s.protocol' value='%s'/>", appname, n, protocol)
+
     local address = m:get(n, "address") or ""
     local port = m:get(n, "port") or ""
-    str = str .. translate(type) .. "：" .. remarks
+    str = str .. translate(protocol) .. "：" .. remarks
     if address ~= "" and port ~= "" then
         if nodes_ping:find("info") then
             if datatypes.ip6addr(address) then

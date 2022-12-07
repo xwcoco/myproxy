@@ -41,7 +41,7 @@ o.default = "https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases/
 o.rmempty = false
 ----
 
-s = m:section(TypedSection, "shunt_rules", "V2ray/Xray " .. translate("Shunt Rule"), "<a style='color: red'>" .. translate("Please note attention to the priority, the higher the order, the higher the priority.") .. "</a>")
+s = m:section(TypedSection, "shunt_rules", "Singbox " .. translate("Shunt Rule"), "<a style='color: red'>" .. translate("Please note attention to the priority, the higher the order, the higher the priority.") .. "</a>")
 s.template = "cbi/tblsection"
 s.anonymous = false
 s.addremove = true
