@@ -252,7 +252,7 @@ function gen_uuid(format)
     return uuid
 end
 
-local singnodeName="singbox"
+local singnodeName="singbox_shunt"
 local singnodeshunt = "shunt"
 function uci_get_singbox_node(config,default)
     local value = uci:get(appname, singnodeName, singnodeshunt, config, default) 
@@ -261,6 +261,16 @@ function uci_get_singbox_node(config,default)
         value = default
     end
     return value 
+end
+
+function uci_get_singbox_shunt_id()
+    local value = uci:get_first(appname,singnodeName)
+    -- log.print("uci_get_singbox_shunt_id " .. value)
+    if (value == nil or value == "") then
+        uci:add(appname,singnodeName)
+        value = uci:get_first(appname,singnodeName)
+    end
+    return value
 end
 
 function uci_set_singbox_node(config,value)

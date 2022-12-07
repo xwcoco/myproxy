@@ -83,6 +83,8 @@ o.rmempty = false
 
 -- 分流
 local shuntConfigName="singbox_shunt"
+local singboxNodeId = api.uci_get_singbox_shunt_id();
+log.print("config singbox " .. singboxNodeId)
 if (has_singbox) and #nodes_table > 0 then
     -- local normal_list = {}
     -- local shunt_list = {}
@@ -112,12 +114,12 @@ if (has_singbox) and #nodes_table > 0 then
                 o.cfgvalue = function(self, section)
                     -- local tmpvalue = api.uci_get_singbox_node(id,nil)
                     -- log.print("cfgvalue = " ..tmpvalue)
-                    return api.uci_get_singbox_node(id,nil)
-                    -- return m:get(shuntConfigName, id) or "nil"
+                    -- return api.uci_get_singbox_node(id,nil)
+                    return m:get(singboxNodeId, id) or "nil"
                 end
                 o.write = function(self, section, value)
-                    api.uci_set_singbox_node(id,value)
-                    -- m:set(shuntConfigName, id, value)
+                    -- api.uci_set_singbox_node(id,value)
+                    m:set(singboxNodeId, id, value)
                 end
             end
         end)
@@ -157,85 +159,7 @@ o = s:taboption("Main", Flag, "localhost_proxy", translate("Localhost Proxy"), t
 o.default = "1"
 o.rmempty = false
 
-s:tab("DNS", translate("DNS"))
 
-o = s:taboption("DNS", ListValue, "direct_dns_protocol", translate("Direct DNS Protocol"))
-o.default = "auto"
-o:value("auto", translate("Auto"))
-o:value("udp", "UDP")
-o:value("tcp", "TCP")
-o:value("doh", "DoH")
-
----- DNS Forward
-o = s:taboption("DNS", Value, "direct_dns", translate("Direct DNS"))
-o.datatype = "or(ipaddr,ipaddrport)"
-o.default = "119.29.29.29"
-o:value("114.114.114.114", "114.114.114.114 (114DNS)")
-o:value("119.29.29.29", "119.29.29.29 (DNSPod)")
-o:value("223.5.5.5", "223.5.5.5 (AliDNS)")
-o:depends("direct_dns_protocol", "udp")
-o:depends("direct_dns_protocol", "tcp")
-
----- DoH
-o = s:taboption("DNS", Value, "direct_dns_doh", translate("Direct DNS DoH"))
-o.default = "https://223.5.5.5/dns-query"
-o:value("https://1.12.12.12/dns-query", "DNSPod 1")
-o:value("https://120.53.53.53/dns-query", "DNSPod 2")
-o:value("https://223.5.5.5/dns-query", "AliDNS")
-o.validate = doh_validate
-o:depends("direct_dns_protocol", "doh")
-
-o = s:taboption("DNS", ListValue, "remote_dns_protocol", translate("Remote DNS Protocol"))
-o:value("tcp", "TCP")
-o:value("doh", "DoH")
-o:value("udp", "UDP")
-o:value("fakedns", "FakeDNS")
-
----- DNS Forward
-o = s:taboption("DNS", Value, "remote_dns", translate("Remote DNS"))
-o.datatype = "or(ipaddr,ipaddrport)"
-o.default = "1.1.1.1"
-o:value("1.1.1.1", "1.1.1.1 (CloudFlare)")
-o:value("1.1.1.2", "1.1.1.2 (CloudFlare-Security)")
-o:value("8.8.4.4", "8.8.4.4 (Google)")
-o:value("8.8.8.8", "8.8.8.8 (Google)")
-o:value("9.9.9.9", "9.9.9.9 (Quad9-Recommended)")
-o:value("208.67.220.220", "208.67.220.220 (OpenDNS)")
-o:value("208.67.222.222", "208.67.222.222 (OpenDNS)")
-o:depends("remote_dns_protocol", "tcp")
-o:depends("remote_dns_protocol", "udp")
-
----- DoH
-o = s:taboption("DNS", Value, "remote_dns_doh", translate("Remote DNS DoH"))
-o.default = "https://1.1.1.1/dns-query"
-o:value("https://1.1.1.1/dns-query", "CloudFlare")
-o:value("https://1.1.1.2/dns-query", "CloudFlare-Security")
-o:value("https://8.8.4.4/dns-query", "Google 8844")
-o:value("https://8.8.8.8/dns-query", "Google 8888")
-o:value("https://9.9.9.9/dns-query", "Quad9-Recommended")
-o:value("https://208.67.222.222/dns-query", "OpenDNS")
-o:value("https://dns.adguard.com/dns-query,176.103.130.130", "AdGuard")
-o:value("https://doh.libredns.gr/dns-query,116.202.176.26", "LibreDNS")
-o:value("https://doh.libredns.gr/ads,116.202.176.26", "LibreDNS (No Ads)")
-o.validate = doh_validate
-o:depends("remote_dns_protocol", "doh")
-
-o = s:taboption("DNS", Value, "remote_dns_client_ip", translate("Remote DNS EDNS Client Subnet"))
-o.description = translate("Notify the DNS server when the DNS query is notified, the location of the client (cannot be a private IP address).") .. "<br />" ..
-                translate("This feature requires the DNS server to support the Edns Client Subnet (RFC7871).")
-o.datatype = "ipaddr"
-o:depends("remote_dns_protocol", "tcp")
-o:depends("remote_dns_protocol", "doh")
-
-o = s:taboption("DNS", ListValue, "dns_query_strategy", translate("Query Strategy"))
-o.default = "UseIPv4"
-o:value("UseIP")
-o:value("UseIPv4")
---o:value("UseIPv6")
-
-hosts = s:taboption("DNS", TextValue, "dns_hosts", translate("Domain Override"))
-hosts.rows = 5
-hosts.wrap = "off"
 
 s:tab("log", translate("Log"))
 o = s:taboption("log", Flag, "close_log", translate("Close Node Log"))
