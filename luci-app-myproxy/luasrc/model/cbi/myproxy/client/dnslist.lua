@@ -23,9 +23,12 @@ function s.create(e, t)
     t = TypedSection.create(e, t)
 end
 
+dns_enable = s:option(Flag,"enable",translate("Enable"))
+dns_enable.default = 1
+
 proxy_rule = s:option(ListValue,"rule",translate("Rule"))
 
-proxy_rule:value("NONE",translate("-"))
+proxy_rule:value(nil,translate("-"))
 
 uci:foreach(appname, "shunt_rules", function(e)
     if e[".name"] and e.remarks then

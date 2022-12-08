@@ -84,7 +84,6 @@ o.rmempty = false
 -- 分流
 local shuntConfigName="singbox_shunt"
 local singboxNodeId = api.uci_get_singbox_shunt_id();
-log.print("config singbox " .. singboxNodeId)
 if (has_singbox) and #nodes_table > 0 then
     -- local normal_list = {}
     -- local shunt_list = {}
@@ -112,13 +111,9 @@ if (has_singbox) and #nodes_table > 0 then
                     o:value(v1.id, v1["remark"])
                 end
                 o.cfgvalue = function(self, section)
-                    -- local tmpvalue = api.uci_get_singbox_node(id,nil)
-                    -- log.print("cfgvalue = " ..tmpvalue)
-                    -- return api.uci_get_singbox_node(id,nil)
                     return m:get(singboxNodeId, id) or "nil"
                 end
                 o.write = function(self, section, value)
-                    -- api.uci_set_singbox_node(id,value)
                     m:set(singboxNodeId, id, value)
                 end
             end
@@ -133,10 +128,10 @@ if (has_singbox) and #nodes_table > 0 then
             o:value(v1.id, v1["remark"])
         end
         o.cfgvalue = function(self, section)
-            return m:get(shuntConfigName, id) or "nil"
+            return m:get(singboxNodeId, id) or "nil"
         end
         o.write = function(self, section, value)
-            m:set(shuntConfigName, id, value)
+            m:set(singboxNodeId, id, value)
         end
         
         local id = "main_node"
@@ -147,10 +142,10 @@ if (has_singbox) and #nodes_table > 0 then
             o:value(v1.id, v1["remark"])
         end
         o.cfgvalue = function(self, section)
-            return m:get(shuntConfigName, id) or "nil"
+            return m:get(singboxNodeId, id) or "nil"
         end
         o.write = function(self, section, value)
-            m:set(shuntConfigName, id, value)
+            m:set(singboxNodeId, id, value)
         end
     -- end
 end

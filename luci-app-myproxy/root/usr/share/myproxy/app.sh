@@ -13,8 +13,6 @@ TMP_PORT_PATH=$TMP_PATH/port
 TMP_ROUTE_PATH=$TMP_PATH/route
 TMP_ACL_PATH=$TMP_PATH/acl
 TMP_PATH2=/tmp/etc/${CONFIG}_tmp
-DNSMASQ_PATH=/etc/dnsmasq.d
-TMP_DNSMASQ_PATH=/tmp/dnsmasq.d/myproxy
 LOG_FILE=/tmp/log/$CONFIG.log
 APP_PATH=/usr/share/$CONFIG
 RULES_PATH=/usr/share/${CONFIG}/rules
@@ -297,7 +295,7 @@ run_v2ray() {
 	echolog ${_extra_param}
 	echolog $config_file
 	lua $API_GEN_V2RAY -node $node -redir_port $redir_port -tcp_proxy_way $tcp_proxy_way -loglevel $loglevel ${_extra_param} > $config_file
-	# ln_run "$(first_type $(config_t_get global_app singbox_file) singbox)" singbox $log_file run -c "$config_file"
+	ln_run "$(first_type $(config_t_get global_app singbox_file) singbox)" singbox $log_file run -c "$config_file"
 }
 
 run_socks() {
@@ -454,7 +452,7 @@ node_switch() {
 
 			#uci set $CONFIG.@global[0].node=$node
 			#uci commit $CONFIG
-			source $APP_PATH/helper_dnsmasq.sh logic_restart no_log=1
+			# source $APP_PATH/helper_dnsmasq.sh logic_restart no_log=1
 		}
 	}
 }
@@ -472,12 +470,17 @@ run_global() {
 		echolog "开启实验性IPv6透明代理(TProxy)，请确认您的节点及类型支持IPv6！"
 		PROXY_IPV6_UDP=1
 	fi
-	V2RAY_ARGS="flag=global node=$NODE redir_port=$REDIR_PORT "
+
+	# $NODE = "singbox_shunt"
+	V2RAY_ARGS="flag=global node=singbox_shunt redir_port=$REDIR_PORT "
 	
+	echolog $V2RAY_ARGS
+
 	V2RAY_CONFIG=$TMP_PATH/global.json
 	V2RAY_LOG=$TMP_PATH/global.log
 	[ "$(config_t_get global close_log 1)" = "1" ] && V2RAY_LOG="/dev/null"
 	V2RAY_ARGS="${V2RAY_ARGS} log_file=${V2RAY_LOG} config_file=${V2RAY_CONFIG}"
+	# $tcp_proxy_way = "tun"
 
 	run_v2ray $V2RAY_ARGS
 	echo "run_v2ray $V2RAY_ARGS" > $TMP_SCRIPT_FUNC_PATH/_global
@@ -651,8 +654,8 @@ stop() {
 	unset V2RAY_LOCATION_ASSET
 	unset XRAY_LOCATION_ASSET
 	stop_crontab
-	source $APP_PATH/helper_dnsmasq.sh del
-	source $APP_PATH/helper_dnsmasq.sh restart no_log=1
+	# source $APP_PATH/helper_dnsmasq.sh del
+	# source $APP_PATH/helper_dnsmasq.sh restart no_log=1
 	rm -rf ${TMP_PATH}
 	rm -rf /tmp/lock/${CONFIG}_script.lock
 	echolog "清空并关闭相关程序和缓存完成。"
@@ -667,7 +670,8 @@ REDIR_PORT=$(echo $(get_new_port 1041 tcp,udp))
 # NODE=$(config_t_get global node nil)
 # [ "$NODE" == "nil" ] && NO_PROXY=1
 # [ "$(config_get_type $NODE nil)" == "nil" ] && NO_PROXY=1
-tcp_proxy_way=$(config_t_get global_forwarding tcp_proxy_way redirect)
+# tcp_proxy_way=$(config_t_get global_forwarding tcp_proxy_way redirect)
+tcp_proxy_way="tun"
 
 
 PROXY_IPV6=$(config_t_get global_forwarding ipv6_tproxy 0)

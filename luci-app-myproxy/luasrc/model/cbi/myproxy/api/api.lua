@@ -14,6 +14,7 @@ curl_args = {"-skfL", "--connect-timeout 3", "--retry 3", "-m 60"}
 command_timeout = 300
 LEDE_BOARD = nil
 DISTRIB_TARGET = nil
+singboxShuntNodeName="singbox_shunt"
 
 function base64Decode(text)
 	local raw = text
@@ -252,19 +253,19 @@ function gen_uuid(format)
     return uuid
 end
 
-local singnodeName="singbox_shunt"
-local singnodeshunt = "shunt"
-function uci_get_singbox_node(config,default)
-    local value = uci:get(appname, singnodeName, singnodeshunt, config, default) 
-    -- local value = uci:get(appname, "singnodeName", config, default
-    if (value == nil or value == "") and (default and default ~= "") then
-        value = default
-    end
-    return value 
-end
+
+-- local singnodeshunt = "shunt"
+-- function uci_get_singbox_node(config,default)
+--     local value = uci:get(appname, singnodeName, singnodeshunt, config, default) 
+--     -- local value = uci:get(appname, "singnodeName", config, default
+--     if (value == nil or value == "") and (default and default ~= "") then
+--         value = default
+--     end
+--     return value 
+-- end
 
 function uci_get_singbox_shunt_id()
-    local value = uci:get_first(appname,singnodeName)
+    local value = uci:get_first(appname,singboxShuntNodeName)
     -- log.print("uci_get_singbox_shunt_id " .. value)
     if (value == nil or value == "") then
         uci:add(appname,singnodeName)
@@ -273,14 +274,14 @@ function uci_get_singbox_shunt_id()
     return value
 end
 
-function uci_set_singbox_node(config,value)
-    x = uci.cursor()
-    log.print("uci_set_singbox_node")
-    log.print(config)
-    log.print(value)
-    x.set(appname,singnodeName,singnodeshunt,config,value)
-    x.commit()
-end
+-- function uci_set_singbox_node(config,value)
+--     x = uci.cursor()
+--     log.print("uci_set_singbox_node")
+--     log.print(config)
+--     log.print(value)
+--     x.set(appname,singnodeName,singnodeshunt,config,value)
+--     x.commit()
+-- end
 
 function uci_get_type(type, config, default)
     local value = uci:get_first(appname, type, config, default) or sys.exec("echo -n $(uci -q get " .. appname .. ".@" .. type .."[0]." .. config .. ")")
