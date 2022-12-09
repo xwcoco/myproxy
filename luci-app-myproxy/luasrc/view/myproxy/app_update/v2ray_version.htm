@@ -1,6 +1,6 @@
 <%
 local api = require "luci.model.cbi.myproxy.api.api"
-local v2ray_version = api.get_v2ray_version()
+local v2ray_version = api.get_singbox_version()
 -%>
 
 <script type="text/javascript">
@@ -73,7 +73,7 @@ local v2ray_version = api.get_v2ray_version()
 
 		var ckeckDetailElm = document.getElementById(btn.id + '-detail');
 
-		XHR.get('<%=api.url("v2ray_check")%>', {
+		XHR.get('<%=api.url("singbox_check")%>', {
 			token: tokenStr,
 			arch: ''
 		}, function (x, json) {
@@ -113,7 +113,7 @@ local v2ray_version = api.get_v2ray_version()
 
 		addPageNotice_v2ray();
 
-		var v2rayUpdateUrl = '<%=api.url("v2ray_update")%>';
+		var v2rayUpdateUrl = '<%=api.url("singbox_update")%>';
 		// Download file
 		XHR.get(v2rayUpdateUrl, {
 			token: tokenStr,
@@ -161,7 +161,7 @@ local v2ray_version = api.get_v2ray_version()
 </script>
 
 <div class="cbi-value">
-	<label class="cbi-value-title">V2ray
+	<label class="cbi-value-title">Sing-box
 		<%:Version%>
 	</label>
 	<div class="cbi-value-field">

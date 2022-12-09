@@ -10,25 +10,15 @@ s = m:section(TypedSection, "global_app", translate("App Update"),
                   "</font>")
 s.anonymous = true
 s:append(Template(appname .. "/app_update/v2ray_version"))
-s:append(Template(appname .. "/app_update/xray_version"))
-s:append(Template(appname .. "/app_update/brook_version"))
-s:append(Template(appname .. "/app_update/hysteria_version"))
+-- s:append(Template(appname .. "/app_update/xray_version"))
+-- s:append(Template(appname .. "/app_update/brook_version"))
+-- s:append(Template(appname .. "/app_update/hysteria_version"))
 
-o = s:option(Value, "v2ray_file", translatef("%s App Path", "V2ray"))
-o.default = "/usr/bin/v2ray"
+o = s:option(Value, "singbox_file", translatef("%s App Path", "Sing-box"))
+o.default = "/usr/bin/sing-box"
 o.rmempty = false
 
-o = s:option(Value, "xray_file", translatef("%s App Path", "Xray"))
-o.default = "/usr/bin/xray"
-o.rmempty = false
 
-o = s:option(Value, "brook_file", translatef("%s App Path", "Brook"))
-o.default = "/usr/bin/brook"
-o.rmempty = false
-
-o = s:option(Value, "hysteria_file", translatef("%s App Path", "Hysteria"))
-o.default = "/usr/bin/hysteria"
-o.rmempty = false
 
 o = s:option(DummyValue, "tips", " ")
 o.rawhtml = true

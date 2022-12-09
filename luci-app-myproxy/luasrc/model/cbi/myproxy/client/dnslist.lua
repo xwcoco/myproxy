@@ -40,7 +40,7 @@ end)
 
 proxy_rule.default=nil
 
-dns_remarks = s:option(Value,"remarks",translate("remarks"))
+dns_remarks = s:option(Value,"remarks",translate("Remarks"))
 dns_remarks.placeholder = "服务器名称，唯一"
 
 
@@ -55,7 +55,7 @@ o:value("HTTP3",translate("HTTP3"))
 o:value("RCode",translate("RCode"))
 o.default = "udp"
 
-o = s:option(Value,"addr",translate("address"))
+o = s:option(Value,"addr",translate("Address"))
 o.placeholder = "202.102.224.68"
 
 o = s:option(Value,"port",translate("Port"))

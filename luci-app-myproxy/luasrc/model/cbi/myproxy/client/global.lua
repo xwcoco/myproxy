@@ -3,7 +3,7 @@ local appname = api.appname
 local uci = api.uci
 local datatypes = api.datatypes
 local has_singbox = api.is_finded("singbox")
-local log = require "luci.log"
+
 
 
 m = Map(appname)
@@ -99,7 +99,7 @@ if (has_singbox) and #nodes_table > 0 then
 
         uci:foreach(appname, "shunt_rules", function(e)
             local id = e[".name"]
-            log.print("shunt_rules_id = "..id)
+            -- log.print("shunt_rules_id = "..id)
             if id and e.remarks then
                 o = s:taboption("Main", ListValue, shuntConfigName .. "." .. id .. "_node", string.format('* <a href="%s" target="_blank">%s</a>', api.url("shunt_rules", id), e.remarks))
                 -- o:depends("node", v.id)

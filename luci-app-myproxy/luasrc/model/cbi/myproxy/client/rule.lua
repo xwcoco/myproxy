@@ -27,17 +27,17 @@ for e = 0, 23 do o:value(e, e .. translate("oclock")) end
 o.default = 0
 o:depends("auto_update", true)
 
-o = s:option(Value, "v2ray_location_asset", translate("Location of V2ray/Xray asset"), translate("This variable specifies a directory where geoip.dat and geosite.dat files are."))
-o.default = "/usr/share/v2ray/"
+o = s:option(Value, "singbox_location_asset", translate("Location of singbox asset"), translate("This variable specifies a directory where geoip.dat and geosite.dat files are."))
+o.default = "/usr/share/singbox/"
 o.rmempty = false
 
 ---- Custom geo file url
 o = s:option(Value, "geoip_url", translate("Custom geoip URL"))
-o.default = "https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases/latest"
+o.default = "https://github.com/SagerNet/sing-geoip/releases/latest"
 o.rmempty = false
 
 o = s:option(Value, "geosite_url", translate("Custom geosite URL"))
-o.default = "https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases/latest"
+o.default = "https://github.com/SagerNet/sing-geosite/releases/latest"
 o.rmempty = false
 ----
 

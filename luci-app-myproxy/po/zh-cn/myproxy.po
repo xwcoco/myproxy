@@ -1161,3 +1161,16 @@ msgstr "每一个连接的缓冲区大小（kB）"
 
 msgid "Custom geoip URL"
 msgstr "自定义geo文件更新链接"
+
+
+msgid "DNS List"
+msgstr "DNS列表"
+
+msgid "detour"
+msgstr "出口"
+
+msgid "address resolver"
+msgstr "域名解析"	
+
+msgid "Location of singbox asset"
+msgstr "sing-box 资源文件目录"

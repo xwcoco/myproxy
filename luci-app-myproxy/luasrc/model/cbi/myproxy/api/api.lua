@@ -6,7 +6,7 @@ util = require "luci.util"
 datatypes = require "luci.cbi.datatypes"
 jsonc = require "luci.jsonc"
 i18n = require "luci.i18n"
-log = require "luci.log"
+-- log = require "luci.log"
 
 appname = "myproxy"
 curl = "/usr/bin/curl"
@@ -266,7 +266,6 @@ end
 
 function uci_get_singbox_shunt_id()
     local value = uci:get_first(appname,singboxShuntNodeName)
-    -- log.print("uci_get_singbox_shunt_id " .. value)
     if (value == nil or value == "") then
         uci:add(appname,singnodeName)
         value = uci:get_first(appname,singnodeName)

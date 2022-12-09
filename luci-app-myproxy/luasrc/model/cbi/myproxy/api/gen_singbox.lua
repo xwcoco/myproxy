@@ -1,6 +1,5 @@
 module("luci.model.cbi.myproxy.api.gen_singbox", package.seeall)
 local api = require "luci.model.cbi.myproxy.api.api"
-local log = require "luci.log"
 
 local var = api.get_args(arg)
 local flag = var["-flag"]
@@ -385,7 +384,7 @@ end
 
 function checkNodeIsOutbounded(name) 
     for k,v in pairs(usedNode) do 
-        log.print("checkNodeIsOutbounded remakrs" .. v["remarks"] .. " name = " .. name)
+        -- log.print("checkNodeIsOutbounded remakrs" .. v["remarks"] .. " name = " .. name)
         if v["remarks"] == name then
             return true
         end
@@ -433,29 +432,29 @@ if true then
         table.insert(inbounds, inbound)
     end
 
-    -- if redir_port then
-    --     log.print("tcp_proxy_way = " .. tcp_proxy_way)
-    --     local inbound = {
-    --         listen_port = tonumber(redir_port),
-    --         listen = "::",
-    --         type = tcp_proxy_way,
-    --         -- sniff = sniffing and true,
-    --         -- sniff_override_destination = true
-    --     }
-    --     if tcp_proxy_way == "tun" then
-    --         inbound = {
-    --             type =  "tun",
-    --             tag = "tun-in",
-    --             inet4_address =  "172.19.0.1/30",
-    --             auto_route = true,
-    --             sniff =  true,
-    --             sniff_override_destination = false
-    --         }
-    --     end
+    if redir_port then
+        -- log.print("tcp_proxy_way = " .. tcp_proxy_way)
+        local inbound = {
+            listen_port = tonumber(redir_port),
+            listen = "::",
+            type = tcp_proxy_way,
+            -- sniff = sniffing and true,
+            -- sniff_override_destination = true
+        }
+        if tcp_proxy_way == "tun" then
+            inbound = {
+                type =  "tun",
+                tag = "tun-in",
+                inet4_address =  "172.19.0.1/30",
+                auto_route = true,
+                sniff =  true,
+                sniff_override_destination = false
+            }
+        end
 
-    --     table.insert(inbounds,inbound)
+        table.insert(inbounds,inbound)
 
-    -- end
+    end
 
     local nodes = {}
     local allnodes = {}
@@ -583,9 +582,9 @@ if flag == "global" then
 
             local detour = e.detour
             if detour ~= "direct" and detour ~= "default" then
-                log.print("dns detour " .. detour)
+                -- log.print("dns detour " .. detour)
                 detour = getDNSDetour(detour)
-                log.print("dns detour " .. detour)
+                -- log.print("dns detour " .. detour)
             end
 
             if detour == "default" then
@@ -636,13 +635,15 @@ if flag == "global" then
 end
 
 
+local v2ray_asset_location = uci:get_first(name, 'global_rules', "singbox_location_asset", "/usr/share/singbox/")
+
 local tmpgeip = {
-    path = "/usr/share/singbox/geoip.db"
+    path = v2ray_asset_location .. "geoip.db"
 }
 routing.geoip = tmpgeip
 
 local tmpgeosite = {
-    path = "/usr/share/singbox/geosite.db"
+    path = v2ray_asset_location .. "geosite.db"
 }
 
 routing.geosite = tmpgeosite
