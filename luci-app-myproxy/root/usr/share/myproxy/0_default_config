@@ -3,9 +3,8 @@ config global
 option localhost_proxy '1'
 option socks_enabled '0'
 option close_log '0'
-option loglevel 'error'
-option node 'nil'
-option enabled '1'
+option loglevel 'debug'
+option enabled '0'
 
 config global_delay
 option auto_on '0'
@@ -13,10 +12,6 @@ option start_daemon '1'
 option start_delay '1'
 
 config global_forwarding
-option tcp_no_redir_ports 'disable'
-option udp_no_redir_ports 'disable'
-option tcp_redir_ports '22,25,53,143,465,587,853,993,995,80,443'
-option udp_redir_ports '1:65535'
 option accept_icmp '0'
 option tcp_proxy_way 'redirect'
 option ipv6_tproxy '0'
@@ -30,9 +25,9 @@ config global_rules
 option auto_update '0'
 option geosite_update '1'
 option geoip_update '1'
-option v2ray_location_asset '/usr/share/v2ray/'
-option geoip_url 'https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases/latest'
-option geosite_url 'https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases/latest'
+option geoip_url 'https://github.com/SagerNet/sing-geoip/releases/latest'
+option geosite_url 'https://github.com/SagerNet/sing-geosite/releases/latest'
+option singbox_location_asset '/usr/share/singbox/'
 
 config global_app
 option singbox_file '/usr/bin/sing-box'
@@ -52,15 +47,6 @@ option connect_timeout '3'
 option retry_num '3'
 option shunt_logic '1'
 
-config dnslist
-option enable '1'
-option protocol 'udp'
-option port '53'
-option rule 'China'
-option remarks 'zz'
-option addr '202.102.224.68'
-option detour 'direct'
-
 config shunt_rules 'China'
 option remarks 'China'
 list geosite 'cn'
@@ -70,17 +56,7 @@ config shunt_rules 'Netflix'
 option remarks 'Netflix'
 list geosite 'netflix'
 
-config dnslist
-option enable '1'
-option protocol 'udp'
-option port '53'
-option rule 'nil'
-option remarks 'google'
-option addr '8.8.8.8'
-option detour '3b18de3c2f234434b83b4ff9febd2601'
-
 config singbox_shunt
-
 
 config shunt_rules 'Proxy'
 option remarks 'Proxy'
