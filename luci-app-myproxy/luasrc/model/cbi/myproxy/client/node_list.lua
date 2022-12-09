@@ -81,7 +81,7 @@ o.cfgvalue = function(t, n)
     local is_sub = m:get(n, "is_sub") or ""
     local group = m:get(n, "group") or ""
     local remarks = m:get(n, "remarks") or ""
-    local protocol = m:get(n, "protocol")
+    local protocol = m:get(n, "protocol") or ""
     -- local type = m:get(n, "type") or ""
     str = str .. string.format("<input type='hidden' id='cbid.%s.%s.protocol' value='%s'/>", appname, n, protocol)
 

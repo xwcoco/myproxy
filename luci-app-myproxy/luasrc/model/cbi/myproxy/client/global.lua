@@ -134,19 +134,7 @@ if (has_singbox) and #nodes_table > 0 then
             m:set(singboxNodeId, id, value)
         end
         
-        local id = "main_node"
-        o = s:taboption("Main", ListValue, shuntConfigName .. "." .. id, string.format('* <a style="color:red">%s</a>', translate("Default Preproxy")), translate("When using, localhost will connect this node first and then use this node to connect the default node."))
-        -- o:depends("node", v.id)
-        o:value("nil", translate("Close"))
-        for k1, v1 in pairs(nodes_table) do
-            o:value(v1.id, v1["remark"])
-        end
-        o.cfgvalue = function(self, section)
-            return m:get(singboxNodeId, id) or "nil"
-        end
-        o.write = function(self, section, value)
-            m:set(singboxNodeId, id, value)
-        end
+
     -- end
 end
 
@@ -160,7 +148,7 @@ s:tab("log", translate("Log"))
 o = s:taboption("log", Flag, "close_log", translate("Close Node Log"))
 o.rmempty = false
 
-loglevel = s:taboption("log", ListValue, "loglevel", translate("Log Level"))
+loglevel = s:taboption("log", ListValue, "loglevel", string.format('* <a href="%s?id=global" target="_blank">%s</a>', api.url("get_redir_log"), translate("Log Level")) )
 loglevel.default = "warning"
 loglevel:value("debug")
 loglevel:value("info")
