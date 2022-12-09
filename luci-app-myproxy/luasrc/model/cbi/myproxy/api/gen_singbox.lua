@@ -305,7 +305,7 @@ function genOutBound(node,tag)
     return result
 end
 
-function genRouteRule(node,outboundTag)
+function genRouteRule(node,outboundTag,isDnsRule)
     local result = {}
 
     if node["protocol"] then
@@ -355,14 +355,19 @@ function genRouteRule(node,outboundTag)
         result.geosite =  api.clone(tmp)
     end
 
-    if node["geoip"] then
-        local tmp = node["geoip"]
-        result.geoip = api.clone(tmp)
+    if isDnsRule == false then
+
+        if node["geoip"] then
+            local tmp = node["geoip"]
+            result.geoip = api.clone(tmp)
+        end
+
+        if node["ip_cidr"] then
+            result.ip_cidr = api.clone(node["ip_cidr"])
+        end        
     end
 
-    if node["ip_cidr"] then
-        result.ip_cidr = api.clone(node["ip_cidr"])
-    end
+
 
     if node["port"] then
         result.port = node["port"]
@@ -525,7 +530,7 @@ if true then
                 end
             end
             if outboundTag then
-                local _rule = genRouteRule(e,outboundTag)
+                local _rule = genRouteRule(e,outboundTag,false)
                 if _rule then
                     table.insert(rules,_rule)
                 end
@@ -595,7 +600,7 @@ if flag == "global" then
             if e.rule ~= "nil" then
                 local node = getDNSShuntRule(e.rule)
                 if node then
-                    local nodeRules = genRouteRule(node)
+                    local nodeRules = genRouteRule(node,nil,true)
                     if (nodeRules) then
                         nodeRules.server = server.tag
                         table.insert(rules,nodeRules)
@@ -905,7 +910,7 @@ if inbounds or outbounds then
 
     table.insert(outbounds, {
         type = "block",
-        tag = "block"
+        tag = "blackhole"
     })
     print(jsonc.stringify(config, 1))
 end
