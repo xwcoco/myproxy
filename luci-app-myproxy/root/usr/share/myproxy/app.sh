@@ -288,12 +288,6 @@ run_v2ray() {
 		[ "${route_only}" = "1" ] && _extra_param="${_extra_param} -route_only 1"
 	}
 
-	echolog $node
-	echolog $redir_port
-	echolog $tcp_proxy_way
-	echolog $loglevel
-	echolog ${_extra_param}
-	echolog $config_file
 	lua $API_GEN_V2RAY -node $node -redir_port $redir_port -tcp_proxy_way $tcp_proxy_way -loglevel $loglevel ${_extra_param} > $config_file
 	ln_run "$(first_type $(config_t_get global_app singbox_file) singbox)" singbox $log_file run -c "$config_file"
 }
@@ -309,7 +303,7 @@ run_socks() {
 	else
 		log_file="/dev/null"
 	fi
-	local type=$(echo $(config_n_get $node type) | tr 'A-Z' 'a-z')
+
 	local remarks=$(config_n_get $node remarks)
 	local server_host=$(config_n_get $node address)
 	local port=$(config_n_get $node port)
@@ -330,9 +324,6 @@ run_socks() {
 		error_msg="某种原因，此 Socks 服务的相关配置已失联，启动中止！"
 	fi
 
-	if ([ "$type" == "v2ray" ] || [ "$type" == "xray" ]) && ([ -n "$(config_n_get $node balancing_node)" ] || [ "$(config_n_get $node default_node)" != "_direct" -a "$(config_n_get $node default_node)" != "_blackhole" ]); then
-		unset error_msg
-	fi
 
 	[ -n "${error_msg}" ] && {
 		[ "$bind" != "127.0.0.1" ] && echolog "  - Socks节点：[$remarks]${tmp}，启动中止 ${bind}:${socks_port} ${error_msg}"
@@ -340,78 +331,31 @@ run_socks() {
 	}
 	[ "$bind" != "127.0.0.1" ] && echolog "  - Socks节点：[$remarks]${tmp}，启动 ${bind}:${socks_port}"
 
-	case "$type" in
-	v2ray|\
-	xray)
-		[ "$http_port" != "0" ] && {
-			http_flag=1
-			config_file=$(echo $config_file | sed "s/SOCKS/HTTP_SOCKS/g")
-			local _extra_param="-local_http_port $http_port"
-		}
-		lua $API_GEN_V2RAY -flag SOCKS_$flag -node $node -local_socks_port $socks_port ${_extra_param} > $config_file
-		ln_run "$(first_type $(config_t_get global_app ${type}_file) ${type})" ${type} $log_file run -c "$config_file"
-	;;
-	naiveproxy)
-		lua $API_GEN_NAIVE -node $node -run_type socks -local_addr $bind -local_port $socks_port -server_host $server_host -server_port $port > $config_file
-		ln_run "$(first_type naive)" naive $log_file "$config_file"
-	;;
-	brook)
-		local protocol=$(config_n_get $node protocol client)
-		local prefix=""
-		[ "$protocol" == "wsclient" ] && {
-			prefix="ws://"
-			local brook_tls=$(config_n_get $node brook_tls 0)
-			[ "$brook_tls" == "1" ] && {
-				prefix="wss://"
-				protocol="wssclient"
-			}
-			local ws_path=$(config_n_get $node ws_path "/ws")
-		}
-		server_host=${prefix}${server_host}
-		ln_run "$(first_type $(config_t_get global_app brook_file) brook)" "brook_SOCKS_${flag}" $log_file "$protocol" --socks5 "$bind:$socks_port" -s "${server_host}:${port}${ws_path}" -p "$(config_n_get $node password)"
-	;;
-	ssr)
-		lua $API_GEN_SS -node $node -local_addr "0.0.0.0" -local_port $socks_port -server_host $server_host -server_port $port > $config_file
-		ln_run "$(first_type ssr-local)" "ssr-local" $log_file -c "$config_file" -v -u
-	;;
-	ss)
-		lua $API_GEN_SS -node $node -local_addr "0.0.0.0" -local_port $socks_port -server_host $server_host -server_port $port -mode tcp_and_udp > $config_file
-		ln_run "$(first_type ss-local)" "ss-local" $log_file -c "$config_file" -v
-	;;
-	ss-rust)
-		[ "$http_port" != "0" ] && {
-			http_flag=1
-			config_file=$(echo $config_file | sed "s/SOCKS/HTTP_SOCKS/g")
-			local _extra_param="-local_http_port $http_port"
-		}
-		lua $API_GEN_SS -node $node -local_socks_port $socks_port -server_host $server_host -server_port $port ${_extra_param} > $config_file
-		ln_run "$(first_type sslocal)" "sslocal" $log_file -c "$config_file" -v
-	;;
-	hysteria)
-		[ "$http_port" != "0" ] && {
-			http_flag=1
-			config_file=$(echo $config_file | sed "s/SOCKS/HTTP_SOCKS/g")
-			local _extra_param="-local_http_port $http_port"
-		}
-		lua $API_GEN_HYSTERIA -node $node -local_socks_port $socks_port -server_host $server_host -server_port $port ${_extra_param} > $config_file
-		ln_run "$(first_type $(config_t_get global_app hysteria_file))" "hysteria" $log_file -c "$config_file" client
-	;;
-	esac
+	[ "$http_port" != "0" ] && {
+		http_flag=1
+		config_file=$(echo $config_file | sed "s/SOCKS/HTTP_SOCKS/g")
+		local _extra_param="-local_http_port $http_port"
+	}
+	echolog $API_GEN_V2RAY -flag SOCKS_$flag -node $node -local_socks_port $socks_port ${_extra_param} -- $config_file
+	lua $API_GEN_V2RAY -flag SOCKS_$flag -node $node -local_socks_port $socks_port ${_extra_param} > $config_file
+	ln_run "$(first_type $(config_t_get global_app singbox_file) singbox)" singbox $log_file run -c "$config_file"
+
+
 
 	# http to socks
-	[ -z "$http_flag" ] && [ "$http_port" != "0" ] && [ -n "$http_config_file" ] && [ "$type" != "v2ray" ] && [ "$type" != "xray" ] && [ "$type" != "socks" ] && {
-		local bin=$(first_type $(config_t_get global_app v2ray_file) v2ray)
-		if [ -n "$bin" ]; then
-			type="v2ray"
-		else
-			bin=$(first_type $(config_t_get global_app xray_file) xray)
-			[ -n "$bin" ] && type="xray"
-		fi
-		[ -z "$type" ] && return 1
-		lua $API_GEN_V2RAY_PROTO -local_http_port $http_port -server_proto socks -server_address "127.0.0.1" -server_port $socks_port -server_username $_username -server_password $_password > $http_config_file
-		ln_run "$bin" ${type} /dev/null run -c "$http_config_file"
-	}
-	unset http_flag
+	# [ -z "$http_flag" ] && [ "$http_port" != "0" ] && [ -n "$http_config_file" ] && [ "$type" != "v2ray" ] && [ "$type" != "xray" ] && [ "$type" != "socks" ] && {
+	# 	local bin=$(first_type $(config_t_get global_app v2ray_file) v2ray)
+	# 	if [ -n "$bin" ]; then
+	# 		type="v2ray"
+	# 	else
+	# 		bin=$(first_type $(config_t_get global_app xray_file) xray)
+	# 		[ -n "$bin" ] && type="xray"
+	# 	fi
+	# 	[ -z "$type" ] && return 1
+	# 	lua $API_GEN_V2RAY_PROTO -local_http_port $http_port -server_proto socks -server_address "127.0.0.1" -server_port $socks_port -server_username $_username -server_password $_password > $http_config_file
+	# 	ln_run "$bin" ${type} /dev/null run -c "$http_config_file"
+	# }
+	# unset http_flag
 }
 
 node_switch() {
@@ -647,8 +591,6 @@ start() {
 
 stop() {
 	clean_log
-	source $APP_PATH/iptables.sh stop
-	kill_all v2ray-plugin obfs-local
 	pgrep -f "sleep.*(6s|9s|58s)" | xargs kill -9 >/dev/null 2>&1
 	pgrep -af "${CONFIG}/" | awk '! /app\.sh|subscribe\.lua|rule_update\.lua/{print $1}' | xargs kill -9 >/dev/null 2>&1
 	unset V2RAY_LOCATION_ASSET
