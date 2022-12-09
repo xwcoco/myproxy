@@ -23,7 +23,7 @@ network:value("", "TCP UDP")
 network:value("tcp", "TCP")
 network:value("udp", "UDP")
 
-source_geoip = s:option(DynamicList,"souce_geoip",translate("Source GeoIP"))
+source_geoip = s:option(DynamicList,"source_geoip",translate("Source GeoIP"))
 source_geoip.description = "<ul><li>" .. translate("Example:")
 .. "</li><li>" .. translate("GeoIP") .. ": private"
 .. "</li></ul>"
@@ -36,68 +36,6 @@ source.description = "<ul><li>" .. translate("Example:")
 .. "</li><li>" .. translate("IP CIDR") .. ": 192.168.1.0/24"
 .. "</li></ul>"
 source.cast = "string"
--- source.cfgvalue = function(self, section)
---     local value
--- 	if self.tag_error[section] then
--- 		value = self:formvalue(section)
--- 	else
--- 		value = self.map:get(section, self.option)
---         if type(value) == "string" then
---             local value2 = {}
---             string.gsub(value, '[^' .. " " .. ']+', function(w) table.insert(value2, w) end)
---             value = value2
---         end
--- 	end
---     return value
--- end
--- source.validate = function(self, value, t)
---     local err = {}
---     for _, v in ipairs(value) do
---         local flag = false
---         if datatypes.ip4addr(v) then
---             flag = true
---         end
-
---         -- if flag == false and v:find("geoip:") and v:find("geoip:") == 1 then
---         --     flag = true
---         -- end
-
---         if flag == false then
---             err[#err + 1] = v
---         end
---     end
-
---     if #err > 0 then
---         self:add_error(t, "invalid", translate("Not true format, please re-enter!"))
---         for _, v in ipairs(err) do
---             self:add_error(t, "invalid", v)
---         end
---     end
-
---     return value
--- end
-
--- local dynamicList_write = function(self, section, value)
---     local t = {}
---     local t2 = {}
---     if type(value) == "table" then
--- 		local x
--- 		for _, x in ipairs(value) do
--- 			if x and #x > 0 then
---                 if not t2[x] then
---                     t2[x] = x
---                     t[#t+1] = x
---                 end
--- 			end
--- 		end
--- 	else
--- 		t = { value }
--- 	end
---     t = table.concat(t, " ")
--- 	return DynamicList.write(self, section, t)
--- end
-
--- source.write = dynamicList_write
 
 sourcePort = s:option(DynamicList, "sourcePort", translate("Source port"))
 
@@ -123,11 +61,9 @@ domain_regex = s:option(DynamicList,"domain_regex",translate("Domain Regex"))
 domain_regex.description = translate("Match domain using regular expression. Examples: \\.goo.*\\.com$' matches 'www.google.com' and 'fonts.googleapis.com', but not 'google.com")
 
 geosite = s:option(DynamicList,"geosite",translate("Geosite"))
-geosite.placeholder="cn"
 geosite.description = "Match geosite.such as google or cn"
 
 geoip = s:option(DynamicList,"geoip",translate("Geoip"))
-geoip.placeholder="private"
 geoip.description = "<ul><li>" .. translate("Example:")
 .. "</li><li>" .. translate("GeoIP") .. ": private"
 .. "</li></ul>"
@@ -139,10 +75,10 @@ ip_list.description = "<ul><li>" .. translate("Example:")
 .. "</li></ul>"
 
 port = s:option(DynamicList, "port", translate("port"))
-port.placeholder = "443"
+port.description = "Match port"
 
 port_range = s:option(DynamicList,"port_range",translate("Port Range"))
-port_range.description = "<ul><li>" .. translate("Example:")
+port_range.description = "<ul><li> " .. translate("Match port range. Example:")
 .. "</li><li> 1000:2000"
 .. "</li><li> :3000"
 .. "</li><li> 4000:"

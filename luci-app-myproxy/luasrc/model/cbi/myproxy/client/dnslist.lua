@@ -24,6 +24,7 @@ function s.create(e, t)
 end
 
 dns_enable = s:option(Flag,"enable",translate("Enable"))
+-- dns_enable.description = translate("Eanble DNS Server")
 dns_enable.default = 1
 
 proxy_rule = s:option(ListValue,"rule",translate("Rule"))
@@ -37,7 +38,7 @@ uci:foreach(appname, "shunt_rules", function(e)
     end
 end)
 
-proxy_rule.default="NONE"
+proxy_rule.default=nil
 
 dns_remarks = s:option(Value,"remarks",translate("remarks"))
 dns_remarks.placeholder = "服务器名称，唯一"
@@ -81,5 +82,9 @@ if #nodes_table > 0 then
                 detour:value(v.id, v.remarks)
             end
         end
+
+address_resolver = s:option(Value,"address_resolver",translate("address resolver"))
+
+
 
 return m

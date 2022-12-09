@@ -20,7 +20,7 @@ local local_http_username = var["-local_http_username"]
 local local_http_password = var["-local_http_password"]
 local loglevel = var["-loglevel"] or "warning"
 local new_port
-
+--++
 local uci = api.uci
 local sys = api.sys
 local jsonc = api.jsonc
@@ -307,11 +307,71 @@ end
 
 function genRouteRule(node,outboundTag)
     local result = {}
+
+    if node["protocol"] then
+        result.protocol = api.clone(node["protocol"])
+    end
+
+    if node["network"] then
+        result.network = node["network"]
+    end
+
+    if node["source_geoip"] then
+        result.source_geoip = api.clone(node["souce_geoip"])
+    end
+
+    if node["source"] then
+        result.source_ip_cidr = api.clone(node["source"])
+    end
+
+    if node["sourcePort"] then
+        result.source_port = api.clone(node["sourcePort"]) 
+    end
+
+    if node["sourcePortRange"] then
+        result.source_port_range = api.clone(node["sourcePortRange"])
+    end
+
+    if node["domain"] then
+        result.domain = api.clone(node["domain"])
+    end
+
+    if node["domain_suffix"] then
+        result.domain_suffix = api.clone(node["domain_suffix"])
+    end
+
+    if node["domain_keyword"] then
+        result.domain_keyword = api.clone(node["domain_keyword"])
+    end
+
+    if node["domain_regex"] then
+        result.domain_regex = api.clone(node["domain_regex"])
+    end
+
+
     if node["geosite"] then
         local tmp = node["geosite"]
        
         result.geosite =  api.clone(tmp)
     end
+
+    if node["geoip"] then
+        local tmp = node["geoip"]
+        result.geoip = api.clone(tmp)
+    end
+
+    if node["ip_cidr"] then
+        result.ip_cidr = api.clone(node["ip_cidr"])
+    end
+
+    if node["port"] then
+        result.port = node["port"]
+    end
+
+    if node["port_range"] then
+        result.port_range = api.clone(node["port_range"])
+    end
+
     if outboundTag then
         result.outbound = outboundTag
     end
@@ -518,12 +578,16 @@ if flag == "global" then
                 detour = nil
             end
 
+            local address_resolver = e.address_resolver
+
+
+
 
             local server = {
                 tag = e.remarks,
                 address = addr,
                 strategy = "ipv4_only",
-                address_resolver = "local",
+                address_resolver = address_resolver or nil,
                 detour = detour
             }
             table.insert(servers,server)
