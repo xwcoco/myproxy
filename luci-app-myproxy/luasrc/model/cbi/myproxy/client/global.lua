@@ -198,22 +198,14 @@ o.default = n + 1080
 o.datatype = "port"
 o.rmempty = false
 
--- if has_v2ray or has_xray then
---     o = s:option(Value, "http_port", "HTTP " .. translate("Listen Port") .. " " .. translate("0 is not use"))
---     o.default = 0
---     o.datatype = "port"
--- end
 
--- for k, v in pairs(nodes_table) do
---     node:value(v.id, v["remark"])
---     if v.type == "Socks" then
---         if has_v2ray or has_xray then
---             socks_node:value(v.id, v["remark"])
---         end
---     else
---         socks_node:value(v.id, v["remark"])
---     end
--- end
+o = s:option(Value, "http_port", "HTTP " .. translate("Listen Port") .. " " .. translate("0 is not use"))
+o.default = 0
+o.datatype = "port"
+
+for k, v in pairs(nodes_table) do
+    socks_node:value(v.id, v["remark"])
+end
 
 m:append(Template(appname .. "/global/footer"))
 

@@ -281,6 +281,74 @@ function getDNSShuntRule(name)
     return dns_shunt_rules_list[name]
 end
 
+function getMultiplexSetting(node) 
+    if node.mux then
+        local ret = {
+            enabled = true,
+            protocol = node.mux_protocol or "smux",
+            max_connections = tonumber(node.mux_max_connections or "4"),
+            min_streams = tonumber(node.mux_min_streams or "4"),
+            max_streams = tonumber(node.mux_max_streams or "0")
+        }
+        return ret
+    end
+    return nil
+end
+
+function getTLSSetting(node)
+    if node.tls then 
+        local tmpalpn = {}
+        if node.alpn == "default" then
+            tmpalpn= nil
+        elseif node.alpn == "h2,http/1.1" then
+            tmpalpn[#template+1] = "h2"
+            tmpalpn[#template+1] = "http/1.1"
+        elseif node.alpn == "h2" then
+            tmpalpn[#template+1] = "h2"
+        else 
+            tmpalpn[#template+1] = "http/1.1"
+        end
+
+        local utls = nil
+        if node.utls ~= nil and node.utls == 1 then
+            utls = {
+                enabled = true,
+                fingerprint = node.fingerprint or "chrome"
+            }
+        end
+
+        local ret = {
+            enabled = true,
+            server_name = node.tls_serverName or "",
+            insecure = tls_allowInsecure == 1 or nil,
+            alpn = tmpalpn,
+            utls = utls
+        }
+        -- if node.tls_allowInsecure then
+        --     ret["insecure"] = true
+        -- end
+        return ret
+    end
+    return nil
+end
+
+function getV2rayTransport(node)
+    local result = {
+        type = node.transport
+    }
+    if node.transport == "http" then
+        result["host"] = node.transport_path or ""
+        result["path"] = node.transport_path or ""
+        result["method"] = node.transport_method or ""
+    elseif node.transport == "ws" then
+        result["path"] = node.transport_path or ""
+        result["max_early_data"] = tonumber(node.ws_maxEarlyData or "0")
+    elseif node.transport == "grpc" then
+        result["service_name"] = node.grpc_serviceName or ""
+    end 
+    return result
+end
+
 
 function genOutBound(node,tag) 
     local result = nil
@@ -292,13 +360,49 @@ function genOutBound(node,tag)
         result = {
             tag = tag,
             type = node.protocol,
+            server =  node.address or nil,
+            server_port = tonumber(node.port) or nil,
+            
+            detour = node.dial_detour or nil,
+            bind_interface = node.dial_bind_interface or nil,
+            inet4_bind_address = node.dial_inet4_bind_address or nil,
+            connect_timeout = node.dial_connect_timeout or nil,
+            tcp_fast_open = node.dial_tcp_fast_open == 1 or nil,
+            udp_fragment = node.dial_udp_fragment == 1 or nil,
         }
         if (node.protocol == "shadowsocks") then
-            result["server"] =  node.address or nil
-            result["server_port"] = tonumber(node.port) or nil
             result["method"] = node.method or nil
             result["password"] =  node.password or ""
+            result["multiplex"] = getMultiplexSetting(node)
 
+        elseif node.protocol == "vmess" or node.protocol == "vless" then
+            result["uuid"] = node.uuid
+            result["multiplex"] = getMultiplexSetting(node)
+
+            if node.protocol == "vmess" then
+                result["security"] = node.security
+            end
+            
+            result["tls"] = getTLSSetting(node)
+            result["transport"] = getV2rayTransport(node)
+        elseif node.protocol == "trojan" then
+            result["password"] = node.password or ""
+            result["tls"] = getTLSSetting(node)
+            result["transport"] = getV2rayTransport(node)
+            result["multiplex"] = getMultiplexSetting(node)
+        elseif node.protocol == "hysteria" then
+            result["up_mbps"] = tonumber(node.hysteria_up_mbps or "0")
+            result["down_mbps"] = tonumber(node.hysteria_down_mbps or "0")
+            result["obfs"] = node.hysteria_obfs or nil
+            if node["hysteria_auth_type"] == "string" then
+                result["auth_str"] = node.hysteria_auth_password or ""
+            elseif node.hysteria_auth_type == "base64" then
+                result["auth"] = node.hysteria_auth_password or ""
+            end
+            result["recv_window_conn"] = tonumber(node.hysteria_recv_window_conn) or nil
+            result["recv_window"] = tonumber(node.hysteria_recv_window) or nil
+            result["disable_mtu_discovery"] = node.hysteria_disable_mtu_discovery == 1 or nil
+            result["tls"] = getTLSSetting(node)
         end        
     end
     return result
@@ -650,240 +754,6 @@ routing.geosite = tmpgeosite
 
 routing.auto_detect_interface = true
 
-
--- if dns_listen_port then
---     table.insert(inbounds, {
---         listen = "127.0.0.1",
---         listen_port = tonumber(dns_listen_port),
---         type = "direct",
---         tag = "dns-in",
---         network = "udp"
-    
---     })
-
---     table.insert(outbounds, {
---         tag = "dns-out",
---         type = "dns",
---     })
-
-
--- end
-
--- if remote_dns_server or remote_dns_doh_url or remote_dns_fake then
---     local rules = {}
---     local _remote_dns_proto
-
---     if not routing then
---         routing = {
---             domainStrategy = "IPOnDemand",
---             rules = {}
---         }
---     end
-
---     dns = {
---         tag = "dns-in1",
---         hosts = {},
---         disableCache = (dns_cache and dns_cache == "0") and true or false,
---         disableFallback = true,
---         disableFallbackIfMatch = true,
---         servers = {},
---         clientIp = (remote_dns_client_ip and remote_dns_client_ip ~= "") and remote_dns_client_ip or nil,
---         queryStrategy = (dns_query_strategy and dns_query_strategy ~= "") and dns_query_strategy or "UseIPv4"
---     }
-
---     local dns_host = ""
---     if flag == "global" then
---         dns_host = uci:get(appname, "@global[0]", "dns_hosts") or ""
---     else
---         flag = flag:gsub("acl_", "")
---         local dns_hosts_mode = uci:get(appname, flag, "dns_hosts_mode") or "default"
---         if dns_hosts_mode == "default" then
---             dns_host = uci:get(appname, "@global[0]", "dns_hosts") or ""
---         elseif dns_hosts_mode == "disable" then
---             dns_host = ""
---         elseif dns_hosts_mode == "custom" then
---             dns_host = uci:get(appname, flag, "dns_hosts") or ""
---         end
---     end
---     if #dns_host > 0 then
---         string.gsub(dns_host, '[^' .. "\r\n" .. ']+', function(w)
---             local host = sys.exec(string.format("echo -n $(echo %s | awk -F ' ' '{print $1}')", w))
---             local key = sys.exec(string.format("echo -n $(echo %s | awk -F ' ' '{print $2}')", w))
---             if host ~= "" and key ~= "" then
---                 dns.hosts[host] = key
---             end
---         end)
---     end
-
---     if true then
---         local _remote_dns = {
---             _flag = "remote",
---             domains = #dns_remote_domains > 0 and dns_remote_domains or nil
---             --expectIPs = #dns_remote_expectIPs > 0 and dns_remote_expectIPs or nil
---         }
-
---         if remote_dns_udp_server then
---             _remote_dns.address = remote_dns_udp_server
---             _remote_dns.port = tonumber(remote_dns_port) or 53
---             _remote_dns_proto = "udp"
---         end
-
---         if remote_dns_tcp_server then
---             _remote_dns.address = remote_dns_tcp_server
---             _remote_dns.port = tonumber(remote_dns_port) or 53
---             _remote_dns_proto = "tcp"
---         end
-
---         if remote_dns_doh_url and remote_dns_doh_host then
---             if remote_dns_server and remote_dns_doh_host ~= remote_dns_server and not api.is_ip(remote_dns_doh_host) then
---                 dns.hosts[remote_dns_doh_host] = remote_dns_server
---             end
---             _remote_dns.address = remote_dns_doh_url
---             _remote_dns.port = tonumber(remote_dns_port) or 443
---             _remote_dns_proto = "tcp"
---         end
-
---         if remote_dns_fake then
---             remote_dns_server = "1.1.1.1"
---             fakedns = {}
---             fakedns[#fakedns + 1] = {
---                 ipPool = "198.18.0.0/16",
---                 poolSize = 65535
---             }
---             if dns_query_strategy == "UseIP" then
---                 fakedns[#fakedns + 1] = {
---                     ipPool = "fc00::/18",
---                     poolSize = 65535
---                 }
---             end
---             _remote_dns.address = "fakedns"
---         end
-
---         table.insert(dns.servers, _remote_dns)
---     end
-
---     if true then
---         local nodes_domain_text = sys.exec('uci show passwall2 | grep ".address=" | cut -d "\'" -f 2 | grep "[a-zA-Z]$" | sort -u')
---         string.gsub(nodes_domain_text, '[^' .. "\r\n" .. ']+', function(w)
---             table.insert(dns_direct_domains, "full:" .. w)
---         end)
-
---         local _direct_dns = {
---             _flag = "direct",
---             domains = #dns_direct_domains > 0 and dns_direct_domains or nil
---             --expectIPs = #dns_direct_expectIPs > 0 and dns_direct_expectIPs or nil
---         }
-
---         if direct_dns_udp_server then
---             _direct_dns.address = direct_dns_udp_server
---             _direct_dns.port = tonumber(direct_dns_port) or 53
---             table.insert(routing.rules, 1, {
---                 type = "field",
---                 ip = {
---                     direct_dns_udp_server
---                 },
---                 port = tonumber(direct_dns_port) or 53,
---                 network = "udp",
---                 outboundTag = "direct"
---             })
---         end
-
---         if direct_dns_tcp_server then
---             _direct_dns.address = direct_dns_tcp_server:gsub("tcp://", "tcp+local://")
---             _direct_dns.port = tonumber(direct_dns_port) or 53
---         end
-
---         if direct_dns_doh_url and direct_dns_doh_host then
---             if direct_dns_server and direct_dns_doh_host ~= direct_dns_server and not api.is_ip(direct_dns_doh_host) then
---                 dns.hosts[direct_dns_doh_host] = direct_dns_server
---             end
---             _direct_dns.address = direct_dns_doh_url:gsub("https://", "https+local://")
---             _direct_dns.port = tonumber(direct_dns_port) or 443
---         end
-
---         table.insert(dns.servers, _direct_dns)
---     end
-
---     if dns_listen_port then
---         table.insert(inbounds, {
---             listen = "127.0.0.1",
---             port = tonumber(dns_listen_port),
---             protocol = "dokodemo-door",
---             tag = "dns-in",
---             settings = {
---                 address = remote_dns_server or "1.1.1.1",
---                 port = 53,
---                 network = "tcp,udp"
---             }
---         })
-
---         table.insert(outbounds, {
---             tag = "dns-out",
---             protocol = "dns",
---             settings = {
---                 address = remote_dns_server or "1.1.1.1",
---                 port = tonumber(remote_dns_port) or 53,
---                 network = _remote_dns_proto or "tcp",
---             }
---         })
-
---         table.insert(routing.rules, 1, {
---             type = "field",
---             inboundTag = {
---                 "dns-in"
---             },
---             outboundTag = "dns-out"
---         })
---     end
-
---     local default_dns_flag = "remote"
---     if node_id and redir_port then
---         local node = uci:get_all(appname, node_id)
---         if node.protocol == "_shunt" then
---             if node.default_node == "_direct" then
---                 default_dns_flag = "direct"
---             end
---         end
---     end
-
---     if dns.servers and #dns.servers > 0 then
---         local dns_servers = nil
---         for index, value in ipairs(dns.servers) do
---             if not dns_servers and value["_flag"] == default_dns_flag then
---                 dns_servers = {
---                     _flag = "default",
---                     address = value.address,
---                     port = value.port
---                 }
---                 break
---             end
---         end
---         if dns_servers then
---             table.insert(dns.servers, 1, dns_servers)
---         end
---     end
-
---     local default_rule_index = #routing.rules > 0 and #routing.rules or 1
---     for index, value in ipairs(routing.rules) do
---         if value["_flag"] == "default" then
---             default_rule_index = index
---             break
---         end
---     end
---     for index, value in ipairs(rules) do
---         local t = rules[#rules + 1 - index]
---         table.insert(routing.rules, default_rule_index, t)
---     end
-
---     local dns_hosts_len = 0
---     for key, value in pairs(dns.hosts) do
---         dns_hosts_len = dns_hosts_len + 1
---     end
-
---     if dns_hosts_len == 0 then
---         dns.hosts = nil
---     end
--- end
 
 if inbounds or outbounds then
     local config = {
