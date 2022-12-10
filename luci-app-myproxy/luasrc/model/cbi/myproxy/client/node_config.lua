@@ -206,7 +206,8 @@ alpn:value("http/1.1")
 alpn:depends({ tls = true })
 
 
-ech = s:option(Flag,"ech",translate("Encrypted Client Hello"))
+ech = s:option(Flag,"ech",translate("ECH"))
+ech.description = translate("Encrypted Client Hello")
 ech.default = 0
 ech:depends({tls = true})
 

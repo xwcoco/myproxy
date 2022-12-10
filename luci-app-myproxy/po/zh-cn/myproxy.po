@@ -1174,3 +1174,69 @@ msgstr "域名解析"
 
 msgid "Location of singbox asset"
 msgstr "sing-box 资源文件目录"
+
+msgid "The maximum transmission unit."
+msgstr "最大传输单元。"
+
+msgid "Strict Route"
+msgstr "严格路由规则"
+
+msgid "Enforce strict routing rules when auto_route is enabled"
+msgstr "启用 auto_route 时执行严格的路由规则。它可以防止地址泄漏，并使 DNS 劫持在 Android 和使用 systemd-resolved 的 Linux 上工作，但你的设备将无法其他设备被访问"
+
+msgid "TCP/IP Stack"
+msgstr "TCP/IP 栈"
+
+msgid "system - Sometimes better performance,gVisor -Better compatibility, based on google/gvisor"
+msgstr "system -（默认）有时性能更好 , gVisor - 兼容性较好，基于 google/gvisor"
+
+msgid "Encrypted Client Hello"
+msgstr "允许客户端加密其 ClientHello 的第一部分信息"
+
+msgid "uTLS"
+msgstr "uTLS"
+
+msgid "Transport Path"
+msgstr "HTTP 请求路径"
+
+msgid "Http Method"
+msgstr "HTTP 请求方法"
+
+msgid "ServiceName"
+msgstr "gRPC 服务名称"
+
+msgid "Mux"
+msgstr "多路复用"
+
+msgid "mux protocol"
+msgstr "多路复用协议"
+
+msgid "mux max connections"
+msgstr "最大连接数量"
+
+msgid "mux min streams"
+msgstr "最小多路复用流数量"
+
+msgid "mux max streams"
+msgstr "最大多路复用流数量"
+
+msgid "Maximum multiplexed streams in a connection before opening a new connection.Conflict with max_connections and min_streams "
+msgstr "在打开新连接之前，连接中的最大多路复用流数量。与 max_connections 和 min_streams 冲突。"
+
+msgid "detour - The tag of the upstream outbound"
+msgstr "上游出站的标签。启用时，其他拨号字段将被忽略。"
+
+msgid "bind_interface"
+msgstr "要绑定到的网络接口"
+
+msgid "inet4 bind address"
+msgstr "绑定的 IPv4 地址"
+
+msgid "connect timeout"
+msgstr "连接超时"
+
+msgid "tcp fast open"
+msgstr "启用 TCP Fast Open"
+
+msgid "udp_fragment"
+msgstr "启用 UDP 分段"

@@ -31,27 +31,6 @@ uci:foreach(appname, "socks", function(s)
     end
 end)
 
--- local doh_validate = function(self, value, t)
---     if value ~= "" then
---         local flag = 0
---         local util = require "luci.util"
---         local val = util.split(value, ",")
---         local url = val[1]
---         val[1] = nil
---         for i = 1, #val do
---             local v = val[i]
---             if v then
---                 if not datatypes.ipmask4(v) then
---                     flag = 1
---                 end
---             end
---         end
---         if flag == 0 then
---             return value
---         end
---     end
---     return nil, translate("DoH request address") .. " " .. translate("Format must be:") .. " URL,IP"
--- end
 
 m:append(Template(appname .. "/global/status"))
 
@@ -65,37 +44,11 @@ s:tab("Main", translate("Main"))
 o = s:taboption("Main", Flag, "enabled", translate("Main switch"))
 o.rmempty = false
 
----- Node
--- node = s:taboption("Main", ListValue, "node", "<a style='color: red'>" .. translate("Node") .. "</a>")
--- node.description = ""
--- local current_node = luci.sys.exec(string.format("[ -f '/tmp/etc/%s/id/TCP' ] && echo -n $(cat /tmp/etc/%s/id/TCP)", appname, appname))
--- if current_node and current_node ~= "" and current_node ~= "nil" then
---     local n = uci:get_all(appname, current_node)
---     if n then
---         if tonumber(m:get("@auto_switch[0]", "enable") or 0) == 1 then
---             local remarks = api.get_full_node_remarks(n)
---             local url = api.url("node_config", current_node)
---             node.description = node.description .. translatef("Current node: %s", string.format('<a href="%s">%s</a>', url, remarks)) .. "<br />"
---         end
---     end
--- end
--- node:value("nil", translate("Close"))
 
 -- 分流
 local shuntConfigName="singbox_shunt"
 local singboxNodeId = api.uci_get_singbox_shunt_id();
 if (has_singbox) and #nodes_table > 0 then
-    -- local normal_list = {}
-    -- local shunt_list = {}
-    -- for k, v in pairs(nodes_table) do
-    --     if v.node_type == "normal" then
-    --         normal_list[#normal_list + 1] = v
-    --     end
-    --     if v.protocol and v.protocol == "_shunt" then
-    --         shunt_list[#shunt_list + 1] = v
-    --     end
-    -- end
-    -- for k, v in pairs(shunt_list) do
 
         uci:foreach(appname, "shunt_rules", function(e)
             local id = e[".name"]
@@ -142,7 +95,20 @@ o = s:taboption("Main", Flag, "localhost_proxy", translate("Localhost Proxy"), t
 o.default = "1"
 o.rmempty = false
 
+s:tab("tun",translate("Tun"))
+tun_mtu = s:taboption("tun",Value,"tun_mtu",translate("Mtu"))
+tun_mtu.description = translate("The maximum transmission unit.")
+tun_mtu.default = 9000
 
+tun_strict_route = s:taboption("tun",Flag,"tun_strict_route",translate("Strict Route"))
+tun_strict_route.description= translate("Enforce strict routing rules when auto_route is enabled")
+tun_strict_route.default = true
+
+tun_stack = s:taboption("tun",ListValue,"tun_stack",translate("TCP/IP Stack"))
+tun_stack:value("system")
+tun_stack:value("gVisor")
+tun_stack.default = "system"
+tun_stack.description = translate("system - Sometimes better performance,gVisor -Better compatibility, based on google/gvisor")
 
 s:tab("log", translate("Log"))
 o = s:taboption("log", Flag, "close_log", translate("Close Node Log"))

@@ -546,13 +546,20 @@ if true then
             -- sniff_override_destination = true
         }
         if tcp_proxy_way == "tun" then
+            local mtu = uci:get_first(appname,"global","tun_mtu","9000")
+            local tun_strict_route = uci:get_first(appname,"global","tun_strict_route","1")
+            local tun_stack = uci:get_first(appname,"global","tun_stack","system")
+
             inbound = {
                 type =  "tun",
                 tag = "tun-in",
                 inet4_address =  "172.19.0.1/30",
                 auto_route = true,
                 sniff =  true,
-                sniff_override_destination = false
+                sniff_override_destination = false,
+                mtu = tonumber(mtu),
+                strict_route = tun_strict_route == 1 ,
+                stack = tun_stack or "system"
             }
         end
 
