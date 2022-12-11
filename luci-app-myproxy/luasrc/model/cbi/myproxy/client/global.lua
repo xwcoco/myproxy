@@ -106,7 +106,7 @@ tun_strict_route.default = true
 
 tun_stack = s:taboption("tun",ListValue,"tun_stack",translate("TCP/IP Stack"))
 tun_stack:value("system")
-tun_stack:value("gVisor")
+tun_stack:value("gvisor")
 tun_stack.default = "system"
 tun_stack.description = translate("system - Sometimes better performance,gVisor -Better compatibility, based on google/gvisor")
 

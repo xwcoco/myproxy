@@ -30,6 +30,7 @@ local fakedns = nil
 local inbounds = {}
 local outbounds = {}
 local routing = nil
+local finalOutboundTag = nil
 
 local dns_shunt_rules_list = {}
 local dns_detour_node_list = {}
@@ -606,6 +607,7 @@ if true then
                 type =  "direct",
                 tag = "default"
             })
+            
         elseif default_node_id == "_blackhole" then
             table.insert(outbounds,{
                 type = "block",
@@ -658,7 +660,8 @@ if true then
         end)
 
         routing = {
-            rules = rules
+            rules = rules,
+            final = "default"
         }
 
 

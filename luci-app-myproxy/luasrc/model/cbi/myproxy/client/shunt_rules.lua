@@ -28,14 +28,13 @@ source_geoip.description = "<ul><li>" .. translate("Example:")
 .. "</li><li>" .. translate("GeoIP") .. ": private"
 .. "</li></ul>"
 
-source_geoip.cast = "string"
 
 source = s:option(DynamicList, "source", translate("Source"))
 source.description = "<ul><li>" .. translate("Example:")
 .. "</li><li>" .. translate("IP") .. ": 192.168.1.100"
 .. "</li><li>" .. translate("IP CIDR") .. ": 192.168.1.0/24"
 .. "</li></ul>"
-source.cast = "string"
+
 
 sourcePort = s:option(DynamicList, "sourcePort", translate("Source port"))
 
