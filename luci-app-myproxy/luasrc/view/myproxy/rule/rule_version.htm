@@ -3,10 +3,14 @@ local api = require "luci.model.cbi.myproxy.api.api"
 
 local geoip_update = api.uci_get_type("global_rules", "geoip_update", "1") == "1" and "checked='checked'" or ""
 local geosite_update = api.uci_get_type("global_rules", "geosite_update", "1") == "1" and "checked='checked'" or ""
+local geosite_local_version = api.get_local_geosite_version()
+local geoip_local_version = api.get_local_geoip_version()
 -%>
 
 <script type="text/javascript">
 	//<![CDATA[
+	var geoinfo;
+
 	function update_rules(btn) {
 		btn.disabled = true;
 		btn.value = '<%:Updating...%>';
@@ -33,7 +37,62 @@ local geosite_update = api.uci_get_type("global_rules", "geosite_update", "1") =
 				}
 			}
 		);
-	}
+	};
+
+	function check_geo(btn) {
+
+		if (geoinfo && geoinfo["geosite"] && geoinfo["geoip"] && (geoinfo["geosite"].has_update || geoinfo["geoip"].has_update)) {
+			update_rules(btn);
+			return;	
+		}
+
+		btn.disabled = true;
+		btn.value = '<%:Checking...%>';
+		XHR.get('<%=api.url("geo_check")%>',null,function(x,data) {
+			btn.disabled = false;
+			geoinfo = data;
+			console.log(geoinfo)
+			var has_update = false;
+			if (geoinfo && geoinfo["geoip"] && geoinfo["geoip"].remote_version) {
+				var geoip_remote = document.getElementById("geoip_remote_id");
+				var geosite_remote = document.getElementById("geosite_remote_id");
+				var urlNode 
+				if (geoinfo["geoip"].has_update) {
+					urlNode = '<em style="color:red;">' + geoinfo["geoip"].remote_version + '</em>';
+					has_update = true;
+				}
+				else
+					urlNode = '<em>' + geoinfo["geoip"].remote_version + '</em>';
+				geoip_remote.innerHTML = urlNode;
+			}
+			if (geoinfo && geoinfo["geosite"] && geoinfo["geosite"].remote_version) {
+				var geosite_remote = document.getElementById("geosite_remote_id");
+				var urlNode 
+				if (geoinfo["geosite"].has_update) {
+					urlNode = '<em style="color:red;">' + geoinfo["geosite"].remote_version + '</em>';
+					has_update = true;
+				}
+				else
+					urlNode = '<em>' + geoinfo["geosite"].remote_version + '</em>';
+				geosite_remote.innerHTML = urlNode;
+			}
+
+			if (has_update) {
+				btn.value = '<%:Manually update%>'
+			} else {
+				btn.value = '<%:Check%>'
+			}
+
+
+		});
+	};
+
+	function getRemoteVersion(name) {
+		if (geoinfo && geoinfo[name] && geoinfo[name].remote_version) 
+			return geoinfo[name].remote_version;
+		return "?"
+
+	};
 	//]]>
 </script>
 <div class="cbi-value" id="_rule_div">
@@ -42,15 +101,39 @@ local geosite_update = api.uci_get_type("global_rules", "geosite_update", "1") =
 	</label>
 	<div class="cbi-value-field">
 		<div>
-			<label>
-				<input class="cbi-input-checkbox" type="checkbox" name="geoip" value="1" <%=geoip_update%> />
-				geoip
-			</label>
-			<label>
-				<input class="cbi-input-checkbox" type="checkbox" name="geosite" value="1" <%=geosite_update%> />
-				geosite
-			</label>
-			<input class="btn cbi-button cbi-button-apply" type="button" id="update_rules_btn" onclick="update_rules(this)" value="<%:Manually update%>" />
+			<table width="400px" style="border-collapse:separate; border-spacing:4px;">
+				<tr>
+					<td width="20%"></td>
+					<td width="40%"><%:Local Version%></td>
+					<td width="40%"><%:Remote Version%></td>
+				</tr>
+				<tr>
+					<td>
+						<label>
+							<input class="cbi-input-checkbox" type="checkbox" name="geoip" value="1" <%=geoip_update%> />
+							geoip
+						</label>
+					</td>
+					<td><%=geoip_local_version%></td>
+					<td id="geoip_remote_id">?</td>
+				</tr>
+				<tr>
+					<td>
+					<label>
+						<input class="cbi-input-checkbox" type="checkbox" name="geosite" value="1" <%=geosite_update%> />
+						geosite
+					</label>
+					</td>
+					<td><%=geosite_local_version%> </td>
+					<td id="geosite_remote_id">?</td>
+				</tr>
+				<tr>
+					<td colspan="3">
+						<input class="btn cbi-button cbi-button-apply" type="button" id="update_rules_btn" onclick="check_geo(this)" value="<%:Check%>" />
+						<!-- <input class="btn cbi-button cbi-button-apply" type="button" id="update_rules_btn" onclick="update_rules(this)" value="<%:Manually update%>" /> -->
+					</td>
+				</tr>
+			</table>
 		</div>
 	</div>
 </div>

@@ -613,3 +613,27 @@ function common_to_check(api_url, local_version, match_file_name)
         data = asset
     }
 end
+
+function get_local_geosite_version()
+    local file = "/etc/singbox/geo_site_version"
+    if (not fs.access(file)) then
+        geotime = i18n.translate("unknow")
+    else
+        geotime = fs.readfile(file)
+    end
+
+    return geotime
+
+end
+
+function get_local_geoip_version()
+    local file = "/etc/singbox/geo_ip_version"
+    if (not fs.access(file)) then
+        geotime = i18n.translate("unknow")
+    else
+        geotime = fs.readfile(file)
+    end
+
+    return geotime
+
+end

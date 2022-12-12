@@ -14,8 +14,10 @@ local geosite_update = 0
 local v2ray_asset_location = ucic:get_first(name, 'global_rules', "singbox_location_asset", "/usr/share/singbox/")
 
 -- Custom geo file
-local geoip_api = ucic:get_first(name, 'global_rules', "geoip_url", "https://github.com/SagerNet/sing-geoip/releases/latest")
-local geosite_api = ucic:get_first(name, 'global_rules', "geosite_url", "https://github.com/SagerNet/sing-geosite/releases/latest")
+-- local geoip_api = ucic:get_first(name, 'global_rules', "geoip_url", "https://github.com/SagerNet/sing-geoip/releases/latest")
+local geoip_api = "https://api.github.com/repos/SagerNet/sing-geoip/releases/latest"
+-- local geosite_api = ucic:get_first(name, 'global_rules', "geosite_url", "https://github.com/SagerNet/sing-geosite/releases/latest")
+local geosite_api = "https://api.github.com/repos/SagerNet/sing-geosite/releases/latest" 
 --
 
 local log = function(...)
@@ -59,6 +61,7 @@ local function fetch_geoip()
 	--请求geoip
 	xpcall(function()
 		local json_str = curl(geoip_api)
+		-- log(json_str)
 		local json = jsonc.parse(json_str)
 		if json.tag_name and json.assets then
 			for _, v in ipairs(json.assets) do
@@ -84,6 +87,7 @@ local function fetch_geoip()
 								sret = curl(v2.browser_download_url, "/tmp/geoip.db")
 								if luci.sys.call('sha256sum -c /tmp/geoip.db.sha256sum > /dev/null 2>&1') == 0 then
 									luci.sys.call(string.format("mkdir -p %s && cp -f %s %s", v2ray_asset_location, "/tmp/geoip.db", v2ray_asset_location .. "geoip.db"))
+									luci.sys.call(string.format("echo %s > /etc/singbox/geo_ip_version",json.tag_name))
 									reboot = 1
 									log("geoip 更新成功。")
 									return 1
@@ -135,6 +139,7 @@ local function fetch_geosite()
 								sret = curl(v2.browser_download_url, "/tmp/geosite.db")
 								if luci.sys.call('sha256sum -c /tmp/geosite.db.sha256sum > /dev/null 2>&1') == 0 then
 									luci.sys.call(string.format("mkdir -p %s && cp -f %s %s", v2ray_asset_location, "/tmp/geosite.db", v2ray_asset_location .. "geosite.db"))
+									luci.sys.call(string.format("echo %s > /etc/singbox/geo_site_version",json.tag_name))
 									reboot = 1
 									log("geosite 更新成功。")
 									return 1

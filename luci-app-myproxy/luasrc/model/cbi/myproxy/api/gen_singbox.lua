@@ -749,7 +749,7 @@ if flag == "global" then
 end
 
 
-local v2ray_asset_location = uci:get_first(name, 'global_rules', "singbox_location_asset", "/usr/share/singbox/")
+local v2ray_asset_location = uci:get_first(name, 'global_rules', "singbox_location_asset", "/etc/singbox/")
 
 local tmpgeip = {
     path = v2ray_asset_location .. "geoip.db"

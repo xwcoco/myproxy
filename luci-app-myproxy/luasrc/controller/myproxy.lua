@@ -8,6 +8,7 @@ local http = require "luci.http"
 local util = require "luci.util"
 local i18n = require "luci.i18n"
 local singbox = require("luci.model.cbi." .. appname ..".api.singbox")
+local geo = require("luci.model.cbi." .. appname ..".api.geofile")
 
 function index()
 	appname = require "luci.model.cbi.myproxy.api.api".appname
@@ -66,6 +67,7 @@ function index()
 	entry({"admin", "services", appname, "update_rules"}, call("update_rules")).leaf = true
 	entry({"admin", "services", appname, "singbox_check"}, call("singbox_check")).leaf = true
 	entry({"admin", "services", appname, "singbox_update"}, call("singbox_update")).leaf = true
+	entry({"admin", "services", appname, "geo_check"}, call("geo_check")).leaf = true
 end
 
 local function http_write_json(content)
@@ -361,6 +363,11 @@ function singbox_update()
 		json = singbox.to_download(http.formvalue("url"), http.formvalue("size"))
 	end
 
+	http_write_json(json)
+end
+
+function geo_check()
+	local json = geo.to_check()
 	http_write_json(json)
 end
 

@@ -92,13 +92,13 @@ function to_extract(file, subfix)
         return {code = 1, error = i18n.translate("File path required.")}
     end
 
-    if sys.exec("echo -n $(opkg list-installed | grep -c unzip)") ~= "1" then
-        api.exec("/bin/rm", {"-f", file})
-        return {
-            code = 1,
-            error = i18n.translate("Not installed unzip, Can't unzip!")
-        }
-    end
+    -- if sys.exec("echo -n $(opkg list-installed | grep -c unzip)") ~= "1" then
+    --     api.exec("/bin/rm", {"-f", file})
+    --     return {
+    --         code = 1,
+    --         error = i18n.translate("Not installed unzip, Can't unzip!")
+    --     }
+    -- end
 
     sys.call("/bin/rm -rf /tmp/singbox_extract.*")
 
@@ -111,14 +111,31 @@ function to_extract(file, subfix)
     local tmp_dir = util.trim(util.exec("mktemp -d -t singbox_extract.XXXXXX"))
 
     local output = {}
-    api.exec("/usr/bin/unzip", {"-o", file, "singbox", "-d", tmp_dir},
-             function(chunk) output[#output + 1] = chunk end)
+    -- api.exec("/usr/bin/unzip", {"-o", file, "singbox", "-d", tmp_dir},
+    --          function(chunk) output[#output + 1] = chunk end)
+
+    api.exec("/bin/tar", {"xzvf", file, "-C", tmp_dir},
+    function(chunk) output[#output + 1] = chunk end)
 
     local files = util.split(table.concat(output))
 
+    -- api.debug("tar check file ....")
+    -- api.debug(files)
+    local filename = ""
+    for k,v in pairs(files) do
+        -- api.debug("value = "..v)
+        if string.find(v,"/sing%-b%ox") then
+            -- api.debug("find filename = ".. v)
+            filename = v
+        end
+    end
+
     api.exec("/bin/rm", {"-f", file})
 
-    return {code = 0, file = tmp_dir}
+    if filename ~= "" then
+        tmp_dir = tmp_dir .. "/" .. filename
+    end
+    return {code = 0, file = tmp_dir }
 end
 
 function to_move(file)
@@ -132,7 +149,9 @@ function to_move(file)
         return {code = 1, error = i18n.translate("Client file is required.")}
     end
 
-    local bin_path = file .. "/singbox"
+    local bin_path = file 
+
+    -- api.debug(bin_path)
 
     local new_version = api.get_singbox_version(bin_path)
     if new_version == "" then
