@@ -39,11 +39,11 @@ function to_check(arch)
         }
     end
 
-    if file_tree == "amd64" then file_tree = "64" end
-    if file_tree == "386" then file_tree = "32" end
-    if file_tree == "mipsle" then file_tree = "mips32le" end
-    if file_tree == "mips" then file_tree = "mips32" end
-    if file_tree == "arm" then file_tree = "arm32" end
+    -- if file_tree == "amd64" then file_tree = "64" end
+    -- if file_tree == "386" then file_tree = "32" end
+    -- if file_tree == "mipsle" then file_tree = "mips32le" end
+    -- if file_tree == "mips" then file_tree = "mips32" end
+    -- if file_tree == "arm" then file_tree = "arm32" end
 
     return api.common_to_check(api_url, api.get_singbox_version(), "linux%-" .. file_tree .. (sub_version ~= "" and ".+" .. sub_version or ""))
 end

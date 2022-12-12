@@ -16,6 +16,20 @@ LEDE_BOARD = nil
 DISTRIB_TARGET = nil
 singboxShuntNodeName="singbox_shunt"
 
+function debug(msg) 
+    if (type(msg) == "table") then
+        for key, val in pairs(msg) do
+            debug('{')
+            debug(key)
+            debug(':')
+            debug(val)
+            debug('}')
+        end
+    else
+        luci.sys.exec("logger -t myproxy debug \"" .. tostring(msg) .. '"')
+    end
+end
+
 function base64Decode(text)
 	local raw = text
 	if not text then return '' end
@@ -570,6 +584,8 @@ function common_to_check(api_url, local_version, match_file_name)
         }
     end
 
+    debug(match_file_name)
+    -- debug(json.assets)
     local asset = {}
     for _, v in ipairs(json.assets) do
         if v.name and v.name:match(match_file_name) then
