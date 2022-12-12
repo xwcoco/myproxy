@@ -30,7 +30,7 @@ option geosite_update '1'
 option geoip_update '1'
 option geoip_url 'https://github.com/SagerNet/sing-geoip/releases/latest'
 option geosite_url 'https://github.com/SagerNet/sing-geosite/releases/latest'
-option singbox_location_asset '/usr/share/singbox/'
+option singbox_location_asset '/etc/singbox/'
 
 config global_app
 option singbox_file '/usr/bin/sing-box'

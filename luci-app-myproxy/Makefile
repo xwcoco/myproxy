@@ -12,7 +12,7 @@ PKG_RELEASE:=2
 LUCI_TITLE:=LuCI support for Sing-box 
 LUCI_PKGARCH:=all
 LUCI_DEPENDS:=+coreutils +coreutils-base64 +coreutils-nohup +curl \
-	+ip-full +libuci-lua +lua +luci-compat +luci-lib-jsonc +resolveip +tcping 
+	+ip-full +libuci-lua +lua +luci-compat +luci-lib-jsonc +resolveip +tcping +unzip
 
 
 
