@@ -95,20 +95,30 @@ o = s:taboption("Main", Flag, "localhost_proxy", translate("Localhost Proxy"), t
 o.default = "1"
 o.rmempty = false
 
-s:tab("tun",translate("Tun"))
+s:tab("tun",translate("Mode"))
+
+proxy_mode = s:taboption("tun",ListValue,"proxy_mode",translate("Proxy Mode"))
+proxy_mode:value("tun")
+proxy_mode:value("tproxy")
+proxy_mode:value("redirect")
+proxy_mode.default = "tun"
+
 tun_mtu = s:taboption("tun",Value,"tun_mtu",translate("Mtu"))
 tun_mtu.description = translate("The maximum transmission unit.")
 tun_mtu.default = 9000
+tun_mtu:depends("proxy_mode","tun")
 
 tun_strict_route = s:taboption("tun",Flag,"tun_strict_route",translate("Strict Route"))
 tun_strict_route.description= translate("Enforce strict routing rules when auto_route is enabled")
 tun_strict_route.default = true
+tun_strict_route:depends("proxy_mode","tun")
 
 tun_stack = s:taboption("tun",ListValue,"tun_stack",translate("TCP/IP Stack"))
 tun_stack:value("system")
 tun_stack:value("gvisor")
 tun_stack.default = "system"
 tun_stack.description = translate("system - Sometimes better performance,gVisor -Better compatibility, based on google/gvisor")
+tun_stack:depends("proxy_mode","tun")
 
 s:tab("log", translate("Log"))
 o = s:taboption("log", Flag, "close_log", translate("Close Node Log"))

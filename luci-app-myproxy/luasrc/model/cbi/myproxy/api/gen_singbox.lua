@@ -745,7 +745,14 @@ if flag == "global" then
     table.insert(outbounds, {
         type = "dns",
         tag = "dns-out"
-    })    
+    })
+    
+    if tcp_proxy_way ~= "tun" then
+        table.insert(routing.rules,{
+            port = 53,
+            outbound = "dns-out"
+        })
+    end
 end
 
 
