@@ -289,7 +289,7 @@ run_v2ray() {
 	}
 
 	lua $API_GEN_V2RAY -node $node -redir_port $redir_port -tcp_proxy_way $tcp_proxy_way -loglevel $loglevel ${_extra_param} > $config_file
-	ln_run "$(first_type $(config_t_get global_app singbox_file) singbox)" singbox $log_file run -c "$config_file"
+	ln_run "$(first_type $(config_t_get global_app singbox_file) singbox)" singbox $log_file run -c "$config_file" --disable-color
 }
 
 run_socks() {
@@ -338,7 +338,7 @@ run_socks() {
 	}
 	echolog $API_GEN_V2RAY -flag SOCKS_$flag -node $node -local_socks_port $socks_port ${_extra_param} -- $config_file
 	lua $API_GEN_V2RAY -flag SOCKS_$flag -node $node -local_socks_port $socks_port ${_extra_param} > $config_file
-	ln_run "$(first_type $(config_t_get global_app singbox_file) singbox)" singbox $log_file run -c "$config_file"
+	ln_run "$(first_type $(config_t_get global_app singbox_file) singbox)" singbox $log_file run -c "$config_file" --disable-color
 
 
 
