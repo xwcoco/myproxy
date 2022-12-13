@@ -621,7 +621,7 @@ add_firewall_rule() {
 	accept_icmp=$(config_t_get global_forwarding accept_icmp 0)
 	accept_icmpv6=$(config_t_get global_forwarding accept_icmpv6 0)
 
-	local tcp_proxy_way=$(config_t_get global_forwarding tcp_proxy_way redirect)
+	local tcp_proxy_way=$(config_t_get global proxy_mode redirect)
 	if [ "$tcp_proxy_way" = "redirect" ]; then
 		unset is_tproxy
 	elif [ "$tcp_proxy_way" = "tproxy" ]; then
@@ -718,7 +718,7 @@ add_firewall_rule() {
 	ip -6 route add local ::/0 dev lo table 100
 
 	# 加载路由器自身代理 TCP
-	if [ "$NODE" != "nil" ] && [ "$LOCALHOST_PROXY" = "1" ]; then
+	if [ "$LOCALHOST_PROXY" = "1" ]; then
 		echolog "加载路由器自身 TCP 代理..."
 
 		[ "$accept_icmp" = "1" ] && {
@@ -792,7 +792,7 @@ add_firewall_rule() {
 	filter_node $NODE UDP > /dev/null 2>&1 &
 
 	# 加载路由器自身代理 UDP
-	if [ "$NODE" != "nil" ] && [ "$LOCALHOST_PROXY" = "1" ]; then
+	if [ "$LOCALHOST_PROXY" = "1" ]; then
 		echolog "加载路由器自身 UDP 代理..."
 
 		[ "$UDP_NO_REDIR_PORTS" != "disable" ] && {
