@@ -575,6 +575,12 @@ start() {
 
 	[ "$NO_PROXY" == 1 ] || {
 		run_global
+
+		if [ "$tcp_proxy_way" != "tun" ]; then
+			echolog "开始配置转发规则"
+			source $APP_PATH/nftables.sh start
+		fi
+
 		# if [ -z "$(command -v iptables-legacy || command -v iptables)" ] || [ -z "$(command -v ipset)" ]; then
 		# 	echolog "系统未安装iptables或ipset，无法透明代理！"
 		# else
@@ -596,6 +602,9 @@ stop() {
 	unset V2RAY_LOCATION_ASSET
 	unset XRAY_LOCATION_ASSET
 	stop_crontab
+	if [ "$tcp_proxy_way" != "tun" ]; then
+		source $APP_PATH/nftables.sh stop
+	fi
 	# source $APP_PATH/helper_dnsmasq.sh del
 	# source $APP_PATH/helper_dnsmasq.sh restart no_log=1
 	rm -rf ${TMP_PATH}
@@ -612,8 +621,8 @@ REDIR_PORT=$(echo $(get_new_port 1041 tcp,udp))
 # NODE=$(config_t_get global node nil)
 # [ "$NODE" == "nil" ] && NO_PROXY=1
 # [ "$(config_get_type $NODE nil)" == "nil" ] && NO_PROXY=1
-# tcp_proxy_way=$(config_t_get global_forwarding tcp_proxy_way redirect)
-tcp_proxy_way="tun"
+tcp_proxy_way=$(config_t_get global proxy_mode tproxy)
+# tcp_proxy_way="tun"
 
 
 PROXY_IPV6=$(config_t_get global_forwarding ipv6_tproxy 0)
