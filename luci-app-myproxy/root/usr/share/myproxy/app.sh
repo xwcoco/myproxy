@@ -578,7 +578,7 @@ start() {
 
 		if [ "$tcp_proxy_way" != "tun" ]; then
 			echolog "开始配置转发规则"
-			source $APP_PATH/iptables.sh start
+			source $APP_PATH/nftables.sh start
 		fi
 
 		# if [ -z "$(command -v iptables-legacy || command -v iptables)" ] || [ -z "$(command -v ipset)" ]; then
@@ -603,7 +603,7 @@ stop() {
 	unset XRAY_LOCATION_ASSET
 	stop_crontab
 	if [ "$tcp_proxy_way" != "tun" ]; then
-		source $APP_PATH/iptables.sh stop
+		source $APP_PATH/nftables.sh stop
 	fi
 	# source $APP_PATH/helper_dnsmasq.sh del
 	# source $APP_PATH/helper_dnsmasq.sh restart no_log=1
