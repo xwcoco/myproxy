@@ -754,7 +754,7 @@ if flag == "global" then
     table.insert(inbounds,{
         type = "direct",
         listen = "::",
-        listen_port = 5353,
+        listen_port = 5335,
         tag = "dns-in"
     })
     

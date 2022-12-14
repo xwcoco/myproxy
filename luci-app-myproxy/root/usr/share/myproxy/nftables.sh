@@ -890,11 +890,23 @@ add_firewall_rule() {
 
 	if [ "$tcp_proxy_way" = "redirect" ]; then
 		echolog "REDIRECT Mode"
+		nft 'add chain myproxy PSW'
+		nft "add rule myproxy PSW ip daddr {127.0.0.1/32, 224.0.0.0/4, 255.255.255.255/32,192.168.0.0/16} counter return"
+		nft 'add chain myproxy dstnat {type nat hook prerouting priority dstnat; }'
+		nft "add rule myproxy dstnat ip protocol tcp counter jump PSW"
+		# nft add chain myproxy proxy
+		# nft add rule myproxy proxy meta l4proto {tcp} redirect to :$REDIR_PORT
+		# nft add rule myproxy prerouting ip protocol udp mark set 1 tproxy to :$REDIR_PORT accept # 转发至 sing-box 端口
 
-		nft add rule myproxy prerouting meta l4proto {tcp} mark set 1 redirect to :$REDIR_PORT # 转发至 sing-box 端口
-		nft add rule myproxy prerouting meta l4proto {udp} mark set 1 tproxy to :$REDIR_PORT accept # 转发至 sing-box 端口
+		nft "add chain myproxy PSW_OUTPUT"
+		nft "flush chain myproxy PSW_OUTPUT"
+		nft "add rule myproxy PSW_OUTPUT ip daddr {127.0.0.1/32, 224.0.0.0/4, 255.255.255.255/32,192.168.0.0/16} counter return"
+		nft "add rule myproxy PSW_OUTPUT meta mark 0xff counter return"
 
+		nft add rule myproxy PSW_OUTPUT ip protocol tcp redirect to :$REDIR_PORT
 
+		nft "add chain myproxy nat_output { type nat hook output priority -1; }"
+		nft "add rule myproxy nat_output ip protocol tcp counter jump PSW_OUTPUT"
 	else	
 		echolog "TPROXY Mode"
 		nft add rule myproxy prerouting meta l4proto {tcp, udp} mark set 1 tproxy to :$REDIR_PORT accept # 转发至 sing-box 端口
@@ -909,16 +921,17 @@ add_firewall_rule() {
 	nft 'add rule myproxy output mark 0xff return # 直连 0xff 流量'
 	nft 'add rule myproxy output meta l4proto {tcp, udp} mark set 1 accept # 重路由至 prerouting'
 
-	# if [ "$tcp_proxy_way" = "redirect" ]; then
-	# 	#
-	# fi
-
 			
 
 	# DIVERT 规则
 	nft 'add table myproxy_filter'
 	nft 'add chain myproxy_filter divert { type filter hook prerouting priority -150 ; }'
 	nft 'add rule myproxy_filter divert meta l4proto tcp socket transparent 1 meta mark set 1 accept'
+
+	# if [ "$tcp_proxy_way" = "redirect" ]; then
+
+	# 	# nft add rule myproxy ssjump meta l4proto {tcp} redirect to :$REDIR_PORT
+	# fi	
 
 	echolog "防火墙规则加载完成。"
 

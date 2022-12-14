@@ -592,7 +592,7 @@ start() {
 		if [ "$tcp_proxy_way" != "tun" ]; then
 			echolog "开始配置转发规则"
 			source $APP_PATH/nftables.sh start
-			addDNSmasqServer()
+			addDNSmasqServer
 
 		fi
 
@@ -619,7 +619,7 @@ stop() {
 	stop_crontab
 	if [ "$tcp_proxy_way" != "tun" ]; then
 		source $APP_PATH/nftables.sh stop
-		deleteDNSmasqSever()
+		deleteDNSmasqSever
 	fi
 	# source $APP_PATH/helper_dnsmasq.sh del
 	# source $APP_PATH/helper_dnsmasq.sh restart no_log=1
