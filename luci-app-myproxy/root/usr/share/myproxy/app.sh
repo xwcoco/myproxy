@@ -564,6 +564,19 @@ boot() {
 	return 0
 }
 
+addDNSmasqServer() {
+	uci -q delete dhcp.@dnsmasq[0].server 2>/dev/null
+	uci add_list dhcp.@dnsmasq[0].server="127.0.0.1#5335" 2>/dev/null
+	uci commit dhcp 2>/dev/null
+	/etc/init.d/dnsmasq restart
+}
+
+deleteDNSmasqSever() {
+	uci -q delete dhcp.@dnsmasq[0].server 2>/dev/null
+	uci commit dhcp 2>/dev/null
+	/etc/init.d/dnsmasq restart
+}
+
 start() {
 	if [ "$(ps | grep /tmp/etc/myproxy | grep -v grep)" != "" ]; then
 		echolog "程序已启动，无需重复启动!"
@@ -579,6 +592,8 @@ start() {
 		if [ "$tcp_proxy_way" != "tun" ]; then
 			echolog "开始配置转发规则"
 			source $APP_PATH/nftables.sh start
+			addDNSmasqServer()
+
 		fi
 
 		# if [ -z "$(command -v iptables-legacy || command -v iptables)" ] || [ -z "$(command -v ipset)" ]; then
@@ -604,6 +619,7 @@ stop() {
 	stop_crontab
 	if [ "$tcp_proxy_way" != "tun" ]; then
 		source $APP_PATH/nftables.sh stop
+		deleteDNSmasqSever()
 	fi
 	# source $APP_PATH/helper_dnsmasq.sh del
 	# source $APP_PATH/helper_dnsmasq.sh restart no_log=1

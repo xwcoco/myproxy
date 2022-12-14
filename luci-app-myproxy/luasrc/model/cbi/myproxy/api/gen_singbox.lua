@@ -664,6 +664,10 @@ if true then
             final = "default"
         }
 
+        if tcp_proxy_way ~= "tun" then
+            routing.default_mark = 255
+        end
+
 
     end
 end
@@ -746,13 +750,18 @@ if flag == "global" then
         type = "dns",
         tag = "dns-out"
     })
+
+    table.insert(inbounds,{
+        type = "direct",
+        listen = "::",
+        listen_port = 5353,
+        tag = "dns-in"
+    })
     
-    if tcp_proxy_way ~= "tun" then
-        table.insert(routing.rules,{
-            port = 53,
-            outbound = "dns-out"
-        })
-    end
+    table.insert(routing.rules,{
+        inbound = "dns-in",
+        outbound = "dns-out"
+    })
 end
 
 
