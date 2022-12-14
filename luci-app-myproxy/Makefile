@@ -18,6 +18,9 @@ LUCI_DEPENDS:=+coreutils +coreutils-base64 +coreutils-nohup +curl \
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_$(PKG_NAME)_Nftables_Transparent_Proxy 
 
+define Package/$(PKG_NAME)/config
+menu "Configuration"
+
 config PACKAGE_$(PKG_NAME)_Nftables_Transparent_Proxy
 	bool "Nftables Transparent Proxy"
 	select PACKAGE_dnsmasq-full
@@ -27,6 +30,8 @@ config PACKAGE_$(PKG_NAME)_Nftables_Transparent_Proxy
 	select PACKAGE_kmod-nft-nat
 	depends on PACKAGE_$(PKG_NAME)
 	default y if PACKAGE_firewall4
+endmenu
+endef	
 
 define Package/$(PKG_NAME)/conffiles
 /etc/config/myproxy
