@@ -3,6 +3,14 @@
 uci -q batch <<-EOF >/dev/null
 	set dhcp.@dnsmasq[0].localuse=1
 	commit dhcp
+
+	delete firewall.myproxy
+	set firewall.myproxy=include
+	set firewall.myproxy.type=script
+	set firewall.myproxy.path=/var/etc/myproxy.include
+	set firewall.myproxy.reload=1
+	commit firewall
+
 	delete ucitrack.@myproxy[-1]
 	add ucitrack myproxy
 	set ucitrack.@myproxy[-1].init=myproxy
