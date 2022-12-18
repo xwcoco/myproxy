@@ -555,6 +555,7 @@ if true then
                 type =  "tun",
                 tag = "tun-in",
                 inet4_address =  "172.19.0.1/30",
+                interface_name = "utun",
                 auto_route = true,
                 sniff =  true,
                 sniff_override_destination = false,
@@ -664,9 +665,9 @@ if true then
             final = "default"
         }
 
-        if tcp_proxy_way ~= "tun" then
+        -- if tcp_proxy_way ~= "tun" then
             routing.default_mark = 255
-        end
+        -- end
 
 
     end
