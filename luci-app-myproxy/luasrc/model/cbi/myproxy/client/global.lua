@@ -125,11 +125,15 @@ o = s:taboption("log", Flag, "close_log", translate("Close Node Log"))
 o.rmempty = false
 
 loglevel = s:taboption("log", ListValue, "loglevel", string.format('* <a href="%s?id=global" target="_blank">%s</a>', api.url("get_redir_log"), translate("Log Level")) )
-loglevel.default = "warning"
+loglevel.default = "warn"
+loglevel:value("trace")
 loglevel:value("debug")
 loglevel:value("info")
-loglevel:value("warning")
+loglevel:value("warn")
 loglevel:value("error")
+loglevel:value("fatal")
+loglevel:value("panic")
+ 
 
 s:tab("faq", "FAQ")
 

@@ -268,7 +268,7 @@ run_v2ray() {
 	eval_set_val $@
 
 	[ -n "$log_file" ] || local log_file="/dev/null"
-	[ -z "$loglevel" ] && local loglevel=$(config_t_get global loglevel "warning")
+	[ -z "$loglevel" ] && local loglevel=$(config_t_get global loglevel "warn")
 	[ -n "$flag" ] && pgrep -af "$TMP_BIN_PATH" | awk -v P1="${flag}" 'BEGIN{IGNORECASE=1}$0~P1{print $1}' | xargs kill -9 >/dev/null 2>&1
 	[ -n "$flag" ] && _extra_param="${_extra_param} -flag $flag"
 	[ -n "$socks_address" ] && _extra_param="${_extra_param} -local_socks_address $socks_address"
@@ -582,6 +582,7 @@ stopDnsmasqServer() {
 	uci del network.lan.dns
 	uci commit network
 	/etc/init.d/dnsmasq stop
+	/etc/init.d/network restart
 }
 
 restoreDnsmasqServer() {
@@ -589,6 +590,7 @@ restoreDnsmasqServer() {
 	uci add_list network.lan.dns='202.102.224.68'
 	uci commit network
 	/etc/init.d/dnsmasq start
+	/etc/init.d/network restart
 	echolog "Dnsmasq启动完成"
 }
 

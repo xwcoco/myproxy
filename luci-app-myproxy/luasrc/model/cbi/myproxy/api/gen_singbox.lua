@@ -17,7 +17,7 @@ local local_http_address = var["-local_http_address"] or "0.0.0.0"
 local local_http_port = var["-local_http_port"]
 local local_http_username = var["-local_http_username"]
 local local_http_password = var["-local_http_password"]
-local loglevel = var["-loglevel"] or "warning"
+local loglevel = var["-loglevel"] or "warn"
 local new_port
 --++
 local uci = api.uci
