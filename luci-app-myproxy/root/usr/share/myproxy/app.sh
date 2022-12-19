@@ -577,6 +577,21 @@ deleteDNSmasqSever() {
 	/etc/init.d/dnsmasq restart
 }
 
+stopDnsmasqServer() {
+	echolog "正在停止Dnsmasq..."
+	uci del network.lan.dns
+	uci commit network
+	/etc/init.d/dnsmasq stop
+}
+
+restoreDnsmasqServer() {
+	uci del network.lan.dns
+	uci add_list network.lan.dns='202.102.224.68'
+	uci commit network
+	/etc/init.d/dnsmasq start
+	echolog "Dnsmasq启动完成"
+}
+
 start() {
 	if [ "$(ps | grep /tmp/etc/myproxy | grep -v grep)" != "" ]; then
 		echolog "程序已启动，无需重复启动!"
@@ -587,12 +602,15 @@ start() {
 	start_socks
 
 	[ "$NO_PROXY" == 1 ] || {
+		
+		stopDnsmasqServer
+
 		run_global
 
 		# if [ "$tcp_proxy_way" != "tun" ]; then
 			echolog "开始配置转发规则"
 			source $APP_PATH/nftables.sh start
-			addDNSmasqServer
+			
 
 		# fi
 
@@ -619,7 +637,7 @@ stop() {
 	stop_crontab
 	# if [ "$tcp_proxy_way" != "tun" ]; then
 		source $APP_PATH/nftables.sh stop
-		deleteDNSmasqSever
+		restoreDnsmasqServer
 	# fi
 	# source $APP_PATH/helper_dnsmasq.sh del
 	# source $APP_PATH/helper_dnsmasq.sh restart no_log=1
