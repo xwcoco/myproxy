@@ -589,12 +589,12 @@ start() {
 	[ "$NO_PROXY" == 1 ] || {
 		run_global
 
-		if [ "$tcp_proxy_way" != "tun" ]; then
+		# if [ "$tcp_proxy_way" != "tun" ]; then
 			echolog "开始配置转发规则"
 			source $APP_PATH/nftables.sh start
 			addDNSmasqServer
 
-		fi
+		# fi
 
 		# if [ -z "$(command -v iptables-legacy || command -v iptables)" ] || [ -z "$(command -v ipset)" ]; then
 		# 	echolog "系统未安装iptables或ipset，无法透明代理！"
@@ -617,10 +617,10 @@ stop() {
 	unset V2RAY_LOCATION_ASSET
 	unset XRAY_LOCATION_ASSET
 	stop_crontab
-	if [ "$tcp_proxy_way" != "tun" ]; then
+	# if [ "$tcp_proxy_way" != "tun" ]; then
 		source $APP_PATH/nftables.sh stop
 		deleteDNSmasqSever
-	fi
+	# fi
 	# source $APP_PATH/helper_dnsmasq.sh del
 	# source $APP_PATH/helper_dnsmasq.sh restart no_log=1
 	rm -rf ${TMP_PATH}
