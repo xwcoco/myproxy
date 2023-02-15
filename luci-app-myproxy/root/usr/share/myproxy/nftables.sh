@@ -6,7 +6,7 @@ MY_PATH=$DIR/nftables.sh
 NETFILTER_MARK=255
 IPROUTE2_TABLE_ID=100
 
-FWI=$(uci -q get firewall.myproxy.path 2>/dev/null)
+#FWI=$(uci -q get firewall.myproxy.path 2>/dev/null)
 
 
 gen_nftset() {
