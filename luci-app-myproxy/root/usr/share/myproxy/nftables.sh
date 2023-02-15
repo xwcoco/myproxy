@@ -16,8 +16,8 @@ gen_nftset() {
 
 	cat > "$TMP_PATH2/nftset/$nftset_name" <<-EOF
 		define $nftset_name = {$@}
-		add set myproxy $nftset_name { type $ip_type; flags interval; auto-merge; }	
-		add element myproxy $nftset_name \$$nftset_name
+		add set inet myproxy $nftset_name { type $ip_type; flags interval; auto-merge; }	
+		add element inet myproxy $nftset_name \$$nftset_name
 	EOF
 	nft -f "$TMP_PATH2/nftset/$nftset_name"
 	# rm "$TMP_PATH2/nftset/$nftset_name"
